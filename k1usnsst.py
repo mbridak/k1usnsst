@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.DEBUG)
 
 import requests
 import sys
@@ -49,6 +49,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.radiochecktimer = QtCore.QTimer()
 		self.radiochecktimer.timeout.connect(self.Radio)
 		self.radiochecktimer.start(1000)
+		self.changeband()
 
 	def relpath(self, filename):
 		"""
@@ -302,7 +303,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		try:
 			with sqlite3.connect(self.database) as conn:
 				sql = "INSERT INTO contacts(callsign, exchange, date_time, band, grid, opname) VALUES(?,?,datetime('now'),?,?,?)"
-				logging.debug(f"log_contact: {sql}")
+				logging.debug(f"log_contact: {sql}\n{contact}")
 				cur = conn.cursor()
 				cur.execute(sql, contact)
 				conn.commit()
