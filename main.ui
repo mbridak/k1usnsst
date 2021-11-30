@@ -12,7 +12,7 @@
   </property>
   <property name="font">
    <font>
-    <family>Courier</family>
+    <family>JetBrains Mono</family>
     <pointsize>12</pointsize>
    </font>
   </property>
@@ -27,6 +27,12 @@
 color: rgb(211, 215, 207);</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="font">
+    <font>
+     <family>JetBrains Mono</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
    <widget class="QFrame" name="frame_2">
     <property name="geometry">
      <rect>
@@ -38,10 +44,10 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="frameShape">
@@ -61,10 +67,11 @@ color: rgb(211, 215, 207);</string>
      </property>
      <property name="font">
       <font>
-       <family>Courier</family>
+       <family>JetBrains Mono</family>
        <pointsize>12</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
       </font>
      </property>
      <property name="focusPolicy">
@@ -96,10 +103,10 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -114,6 +121,12 @@ color: rgb(211, 215, 207);</string>
       <width>61</width>
       <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>JetBrains Mono</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="focusPolicy">
      <enum>Qt::NoFocus</enum>
@@ -190,7 +203,7 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>10</pointsize>
       <weight>75</weight>
       <bold>true</bold>
@@ -214,7 +227,7 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>10</pointsize>
       <weight>75</weight>
       <bold>true</bold>
@@ -228,17 +241,17 @@ color: rgb(211, 215, 207);</string>
     <property name="geometry">
      <rect>
       <x>421</x>
-      <y>10</y>
+      <y>7</y>
       <width>111</width>
       <height>25</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="focusPolicy">
@@ -260,18 +273,18 @@ color: rgb(211, 215, 207);</string>
    <widget class="QPushButton" name="genLogButton">
     <property name="geometry">
      <rect>
-      <x>580</x>
+      <x>565</x>
       <y>203</y>
-      <width>111</width>
+      <width>141</width>
       <height>25</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
-      <pointsize>10</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <family>JetBrains Mono</family>
+      <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="focusPolicy">
@@ -311,17 +324,17 @@ color: rgb(211, 215, 207);</string>
     <property name="geometry">
      <rect>
       <x>191</x>
-      <y>10</y>
+      <y>9</y>
       <width>29</width>
       <height>19</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="styleSheet">
@@ -342,10 +355,10 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="placeholderText">
@@ -363,7 +376,7 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
       <weight>75</weight>
       <bold>true</bold>
@@ -399,10 +412,10 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
       <kerning>true</kerning>
      </font>
     </property>
@@ -421,10 +434,10 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -445,10 +458,10 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -466,10 +479,10 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -490,10 +503,10 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -511,10 +524,10 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -527,18 +540,18 @@ color: rgb(211, 215, 207);</string>
    <widget class="QLineEdit" name="myexchangeEntry">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>10</y>
+      <x>545</x>
+      <y>7</y>
       <width>161</width>
       <height>26</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <family>Courier</family>
+      <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="focusPolicy">

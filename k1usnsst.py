@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 import requests
 import sys
@@ -11,9 +11,25 @@ import os
 
 from json import dumps
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5.QtCore import QDir
+from PyQt5.QtGui import QFontDatabase
 from datetime import datetime
 from sqlite3 import Error
 from pathlib import Path
+
+def relpath(filename):
+		try:
+			base_path = sys._MEIPASS # pylint: disable=no-member
+		except:
+			base_path = os.path.abspath(".")
+		return os.path.join(base_path, filename)
+
+def load_fonts_from_dir(directory):
+		families = set()
+		for fi in QDir(directory).entryInfoList(["*.ttf", "*.woff", "*.woff2"]):
+			_id = QFontDatabase.addApplicationFont(fi.absoluteFilePath())
+			families |= set(QFontDatabase.applicationFontFamilies(_id))
+		return families
 
 class qsoEdit(QtCore.QObject):
 	"""
@@ -50,6 +66,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.radiochecktimer.timeout.connect(self.Radio)
 		self.radiochecktimer.start(1000)
 		self.changeband()
+
+	
 
 	def relpath(self, filename):
 		"""
@@ -637,6 +655,9 @@ class Settings(QtWidgets.QDialog):
 
 app = QtWidgets.QApplication(sys.argv)
 app.setStyle('Fusion')
+font_dir = relpath("font")
+families = load_fonts_from_dir(os.fspath(font_dir))
+logging.info(families)
 window = MainWindow()
 window.show()
 window.create_DB()
