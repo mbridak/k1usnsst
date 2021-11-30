@@ -455,7 +455,7 @@ color: rgb(211, 215, 207);</string>
      <string>Mults:</string>
     </property>
    </widget>
-   <widget class="QLabel" name="QSO_Last15">
+   <widget class="QLabel" name="Total_Mults">
     <property name="geometry">
      <rect>
       <x>631</x>
@@ -500,7 +500,7 @@ color: rgb(211, 215, 207);</string>
      <string>Score:</string>
     </property>
    </widget>
-   <widget class="QLabel" name="Total_Digital">
+   <widget class="QLabel" name="Total_Score">
     <property name="geometry">
      <rect>
       <x>631</x>

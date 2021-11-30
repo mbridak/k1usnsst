@@ -471,6 +471,10 @@ class MainWindow(QtWidgets.QMainWindow):
 		"""
 		determine the amount od QSO's, S/P per band, DX per band.
 		"""
+		total_qso = 0
+		total_mults = 0
+		total_score = 0
+
 		bandsworked = self.getbands()
 		for band in bandsworked:
 			try:
@@ -488,7 +492,12 @@ class MainWindow(QtWidgets.QMainWindow):
 					logging.debug(f"score: band:{band} q:{qso} s&p:{sandp} dx:{dx}")
 			except Error as e:
 				logging.critical(f"calcscore: {e}")
-
+			total_qso += qso[0]
+			total_mults += (sandp[0]+dx[0])
+			total_score = total_qso * total_mults
+			self.Total_CW.setText(str(total_qso))
+			self.Total_Mults.setText(str(total_mults))
+			self.Total_Score.setText(str(total_score))
 
 	def getbands(self):
 		"""
