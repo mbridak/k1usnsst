@@ -25,7 +25,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 	database = "SST.db"
 	mycall = ""
-	mystate =""
+	myexchange =""
 	userigctl = True
 	useqrz = False
 	oldfreq = None
@@ -36,7 +36,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		uic.loadUi(self.relpath("main.ui"), self)
 		self.listWidget.itemDoubleClicked.connect(self.qsoclicked)
 		self.mycallEntry.textEdited.connect(self.changemycall)
-		self.mystateEntry.textEdited.connect(self.changemystate)
+		self.myexchangeEntry.textEdited.connect(self.changemyexchange)
 		self.callsign_entry.textEdited.connect(self.calltest)
 		self.callsign_entry.returnPressed.connect(self.log_contact)
 		self.callsign_entry.editingFinished.connect(self.dupCheck)
@@ -211,16 +211,16 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.mycallEntry.setStyleSheet("border: 1px solid red;")
 		self.writepreferences()
 
-	def changemystate(self):
-		text = self.mystateEntry.text()
+	def changemyexchange(self): 
+		text = self.myexchangeEntry.text()
 		if(len(text)):
 				cleaned = ''.join(ch for ch in text if ch.isalpha() or ch==" ").upper()
-				self.mystateEntry.setText(cleaned)
-		self.mystate = self.mystateEntry.text()
-		if self.mystate !="":
-			self.mystateEntry.setStyleSheet("border: 1px solid green;")
+				self.myexchangeEntry.setText(cleaned)
+		self.myexchange = self.myexchangeEntry.text()
+		if self.myexchange !="":
+			self.myexchangeEntry.setStyleSheet("border: 1px solid green;")
 		else:
-			self.mystateEntry.setStyleSheet("border: 1px solid red;")
+			self.myexchangeEntry.setStyleSheet("border: 1px solid red;")
 		self.writepreferences()
 
 	def calltest(self):
@@ -257,9 +257,9 @@ class MainWindow(QtWidgets.QMainWindow):
 		try:
 			with sqlite3.connect(self.database) as conn:
 				c = conn.cursor()
-				sql_table = """ CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY, callsign text NOT NULL, exchange text NOT NULL, date_time text NOT NULL, band text NOT NULL, grid text NOT NULL, opname text NOT NULL); """
+				sql_table = """ CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY, callsign text NOT NULL, name text NOT NULL, sandpdx text NOT NULL, date_time text NOT NULL, band text NOT NULL, grid text NOT NULL, opname text NOT NULL); """
 				c.execute(sql_table)
-				sql_table = """ CREATE TABLE IF NOT EXISTS preferences (id INTEGER PRIMARY KEY, mycallsign TEXT DEFAULT '', mystate TEXT DEFAULT '', qrzusername TEXT DEFAULT 'w1aw', qrzpassword TEXT default 'secret', qrzurl TEXT DEFAULT 'https://xmldata.qrz.com/xml/', useqrz INTEGER DEFAULT 0, userigcontrol INTEGER DEFAULT 1, rigcontrolip TEXT DEFAULT '127.0.0.1', rigcontrolport TEXT DEFAULT '4532', usehamdb INTEGER DEFAULT 0); """
+				sql_table = """ CREATE TABLE IF NOT EXISTS preferences (id INTEGER PRIMARY KEY, mycallsign TEXT DEFAULT '', myexchange TEXT DEFAULT '', qrzusername TEXT DEFAULT 'w1aw', qrzpassword TEXT default 'secret', qrzurl TEXT DEFAULT 'https://xmldata.qrz.com/xml/', useqrz INTEGER DEFAULT 0, userigcontrol INTEGER DEFAULT 1, rigcontrolip TEXT DEFAULT '127.0.0.1', rigcontrolport TEXT DEFAULT '4532', usehamdb INTEGER DEFAULT 0); """
 				c.execute(sql_table)
 				conn.commit()
 		except Error as e:
@@ -273,12 +273,12 @@ class MainWindow(QtWidgets.QMainWindow):
 				pref = c.fetchall()
 				if len(pref) > 0:
 					for x in pref:
-						_, self.mycall, self.mystate, self.qrzname, self.qrzpass, self.qrzurl, self.useqrz, self.userigctl ,self.rigctrlhost, self.rigctrlport, self.usehamdb = x
+						_, self.mycall, self.myexchange, self.qrzname, self.qrzpass, self.qrzurl, self.useqrz, self.userigctl ,self.rigctrlhost, self.rigctrlport, self.usehamdb = x
 						logging.debug(f"readpreferences: {x}")
-						self.mycallEntry.setText(self.mycall)
-						self.mystateEntry.setText(self.mystate)
+						self.mycallEntry.setText(self.myexchange)
+						self.myexchangeEntry.setText(self.myexchange)
 				else:
-					sql = f"INSERT INTO preferences(id, mycallsign, mystate) VALUES(1,'{self.mycall}','{self.mystate}')"
+					sql = f"INSERT INTO preferences(id, mycallsign, myexchange) VALUES(1,'{self.mycall}','{self.myexchange}')"
 					logging.debug(sql)
 					c.execute(sql)
 					conn.commit()
@@ -288,7 +288,7 @@ class MainWindow(QtWidgets.QMainWindow):
 	def writepreferences(self):
 		try:
 			with sqlite3.connect(self.database) as conn:
-				sql = f"UPDATE preferences SET mycallsign = '{self.mycall}', mystate = '{self.mystate}', usehamdb = {int(self.usehamdb)} WHERE id = 1"
+				sql = f"UPDATE preferences SET mycallsign = '{self.mycall}', myexchange = '{self.myexchange}' WHERE id = 1"
 				logging.debug(f"writepreferences: {sql}")
 				cur = conn.cursor()
 				cur.execute(sql)
@@ -299,10 +299,10 @@ class MainWindow(QtWidgets.QMainWindow):
 	def log_contact(self):
 		if(len(self.callsign_entry.text()) == 0 or len(self.exchange_entry.text()) == 0): return
 		grid, opname = self.qrzlookup(self.callsign_entry.text())
-		contact = (self.callsign_entry.text(), self.exchange_entry.text(), self.band, grid, opname)
+		contact = (self.callsign_entry.text(), self.exchange_entry.text().split()[0], self.exchange_entry.text().split()[1], self.band, grid, opname)
 		try:
 			with sqlite3.connect(self.database) as conn:
-				sql = "INSERT INTO contacts(callsign, exchange, date_time, band, grid, opname) VALUES(?,?,datetime('now'),?,?,?)"
+				sql = "INSERT INTO contacts(callsign, name, sandpdx, date_time, band, grid, opname) VALUES(?,?,?,datetime('now'),?,?,?)"
 				logging.debug(f"log_contact: {sql}\n{contact}")
 				cur = conn.cursor()
 				cur.execute(sql, contact)
@@ -323,9 +323,10 @@ class MainWindow(QtWidgets.QMainWindow):
 		except Error as e:
 			logging.critical(f"logwindow: {e}")
 		for x in log:
-			logid, hiscall, hisexchange, datetime, band, _, _ = x
-			logline = f"{str(logid).rjust(3,'0')} {hiscall.ljust(11)} {hisexchange.ljust(15)} {datetime} {str(band).rjust(3)}"
+			logid, hiscall, hisname, sandpdx, datetime, band, _, _ = x
+			logline = f"{str(logid).rjust(3,'0')} {hiscall.ljust(11)} {hisname.ljust(12)} {sandpdx} {datetime} {str(band).rjust(3)}"
 			self.listWidget.addItem(logline)
+		self.calcscore()
 
 	def qsoclicked(self):
 		"""
@@ -391,6 +392,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		except:
 			#self.infobox.insertPlainText(f"Something Smells...\n")
 			logging.warn("Lookup Failed")
+		if grid == "NOT_FOUND": grid = False
+		if name == "NOT_FOUND": name = False
 		return grid, name
 
 	def parseLookup(self,r):
@@ -434,7 +437,7 @@ class MainWindow(QtWidgets.QMainWindow):
 			print("<EOH>", end='\r\n', file=f)
 			mode = "CW"
 			for x in log:
-				_, hiscall, hisexchange, datetime, band, grid, opname = x
+				_, hiscall, hisname, sandpdx, datetime, band, grid, opname = x
 				loggeddate = datetime[:10]
 				loggedtime = datetime[11:13] + datetime[14:16]
 				print(f"<QSO_DATE:{len(''.join(loggeddate.split('-')))}:d>{''.join(loggeddate.split('-'))}", end='\r\n', file=f)
@@ -448,9 +451,10 @@ class MainWindow(QtWidgets.QMainWindow):
 					pass # This is bad form... I can't remember why this is in a try block
 				print("<RST_SENT:3>599", end='\r\n', file=f)
 				print("<RST_RCVD:3>599", end='\r\n', file=f)
-				print(f"<STX_STRING:{len(self.mystate)}>{self.mystate}", end='\r\n', file=f)
+				print(f"<STX_STRING:{len(self.myexchangeEntry.text())}>{self.myexchangeEntry.text()}", end='\r\n', file=f)
+				hisexchange = f"{hisname} {sandpdx}"
 				print(f"<SRX_STRING:{len(hisexchange)}>{hisexchange}", end='\r\n', file=f)
-				state = hisexchange.split()[1]
+				state = sandpdx
 				if state: print(f"<STATE:{len(state)}>{state}", end='\r\n', file=f)
 				if len(grid) > 1: print(f"<GRIDSQUARE:{len(grid)}>{grid}", end='\r\n', file=f)
 				if len(opname) > 1: print(f"<NAME:{len(opname)}>{opname}", end='\r\n', file=f)
@@ -463,6 +467,48 @@ class MainWindow(QtWidgets.QMainWindow):
 			#self.infobox.insertPlainText("Done\n\n")
 		app.processEvents()
 
+	def calcscore(self):
+		"""
+		determine the amount od QSO's, S/P per band, DX per band.
+		"""
+		bandsworked = self.getbands()
+		for band in bandsworked:
+			try:
+				with sqlite3.connect(self.database) as conn:
+					c = conn.cursor()
+					query = f"select count(*) from contacts where band='{band}'"
+					c.execute(query)
+					qso = c.fetchone()
+					query = f"select count(distinct sandpdx) from contacts where band='{band}' and sandpdx <> 'DX'"
+					c.execute(query)
+					sandp = c.fetchone()
+					query = f"select count(*) from contacts where band='{band}' and sandpdx = 'DX'"
+					c.execute(query)
+					dx = c.fetchone()
+					logging.debug(f"score: band:{band} q:{qso} s&p:{sandp} dx:{dx}")
+			except Error as e:
+				logging.critical(f"calcscore: {e}")
+
+
+	def getbands(self):
+		"""
+		Returns a list of bands worked, and an empty list if none worked.
+		"""
+		bandlist=[]
+		try:
+			with sqlite3.connect(self.database) as conn:
+				c = conn.cursor()
+				c.execute("select DISTINCT band from contacts")
+				x=c.fetchall()
+		except Error as e:
+			logging.critical(f"getbands: {e}")
+			return []
+		if x:
+			for count in x:
+				bandlist.append(count[0])
+			return bandlist
+		return []
+		
 	def generateLogs(self):
 		#self.infobox.clear()
 		#self.cabrillo()
@@ -503,7 +549,7 @@ class editQSODialog(QtWidgets.QDialog):
 	def saveChanges(self):
 		try:
 			with sqlite3.connect(self.database) as conn:
-				sql = f"update contacts set callsign = '{self.editCallsign.text().upper()}', exchange = '{self.editExchange.text().upper()}', date_time = '{self.editDateTime.text()}', band = '{self.editBand.currentText()}'  where id={self.theitem}"
+				sql = f"update contacts set callsign = '{self.editCallsign.text().upper()}', name = '{self.editExchange.text().upper().split()[0]}', sandpdx = '{self.editExchange.text().upper().split()[1]}', date_time = '{self.editDateTime.text()}', band = '{self.editBand.currentText()}'  where id={self.theitem}"
 				cur = conn.cursor()
 				cur.execute(sql)
 				conn.commit()

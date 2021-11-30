@@ -524,7 +524,7 @@ color: rgb(211, 215, 207);</string>
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="mystateEntry">
+   <widget class="QLineEdit" name="myexchangeEntry">
     <property name="geometry">
      <rect>
       <x>540</x>
