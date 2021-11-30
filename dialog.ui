@@ -10,6 +10,12 @@
     <height>292</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <family>JetBrains Mono</family>
+    <pointsize>12</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Edit QSO</string>
   </property>
@@ -28,9 +34,10 @@ color: rgb(211, 215, 207);</string>
    </property>
    <property name="font">
     <font>
-     <family>Courier</family>
-     <weight>75</weight>
-     <bold>true</bold>
+     <family>JetBrains Mono</family>
+     <pointsize>12</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="orientation">
@@ -46,17 +53,18 @@ color: rgb(211, 215, 207);</string>
   <widget class="QLineEdit" name="editCallsign">
    <property name="geometry">
     <rect>
-     <x>136</x>
+     <x>130</x>
      <y>35</y>
-     <width>142</width>
+     <width>201</width>
      <height>25</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <family>Courier</family>
-     <weight>75</weight>
-     <bold>true</bold>
+     <family>JetBrains Mono</family>
+     <pointsize>12</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="maxLength">
@@ -66,17 +74,18 @@ color: rgb(211, 215, 207);</string>
   <widget class="QLineEdit" name="editExchange">
    <property name="geometry">
     <rect>
-     <x>136</x>
+     <x>130</x>
      <y>88</y>
-     <width>142</width>
+     <width>201</width>
      <height>25</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <family>Courier</family>
-     <weight>75</weight>
-     <bold>true</bold>
+     <family>JetBrains Mono</family>
+     <pointsize>12</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="maxLength">
@@ -86,22 +95,23 @@ color: rgb(211, 215, 207);</string>
   <widget class="QDateTimeEdit" name="editDateTime">
    <property name="geometry">
     <rect>
-     <x>136</x>
+     <x>130</x>
      <y>195</y>
-     <width>201</width>
+     <width>211</width>
      <height>26</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <family>Courier</family>
-     <weight>75</weight>
-     <bold>true</bold>
+     <family>JetBrains Mono</family>
+     <pointsize>12</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="dateTime">
     <datetime>
-     <hour>0</hour>
+     <hour>16</hour>
      <minute>0</minute>
      <second>6</second>
      <year>2000</year>
@@ -124,15 +134,16 @@ color: rgb(211, 215, 207);</string>
     <rect>
      <x>20</x>
      <y>250</y>
-     <width>98</width>
+     <width>111</width>
      <height>26</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <family>Courier</family>
-     <weight>75</weight>
-     <bold>true</bold>
+     <family>JetBrains Mono</family>
+     <pointsize>12</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
@@ -146,7 +157,7 @@ color: rgb(255, 255, 255);</string>
   <widget class="QComboBox" name="editBand">
    <property name="geometry">
     <rect>
-     <x>136</x>
+     <x>130</x>
      <y>142</y>
      <width>86</width>
      <height>25</height>
@@ -154,9 +165,10 @@ color: rgb(255, 255, 255);</string>
    </property>
    <property name="font">
     <font>
-     <family>Courier</family>
-     <weight>75</weight>
-     <bold>true</bold>
+     <family>JetBrains Mono</family>
+     <pointsize>12</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <item>
@@ -208,16 +220,16 @@ color: rgb(255, 255, 255);</string>
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>41</x>
+     <x>23</x>
      <y>21</y>
-     <width>92</width>
+     <width>98</width>
      <height>211</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <family>Courier</family>
-     <weight>75</weight>
+     <family>JetBrains Mono</family>
+     <weight>50</weight>
      <bold>true</bold>
     </font>
    </property>
@@ -226,9 +238,10 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="label">
       <property name="font">
        <font>
-        <family>Courier</family>
-        <weight>75</weight>
-        <bold>true</bold>
+        <family>JetBrains Mono</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -243,9 +256,10 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="label_2">
       <property name="font">
        <font>
-        <family>Courier</family>
-        <weight>75</weight>
-        <bold>true</bold>
+        <family>JetBrains Mono</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -260,9 +274,10 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="label_4">
       <property name="font">
        <font>
-        <family>Courier</family>
-        <weight>75</weight>
-        <bold>true</bold>
+        <family>JetBrains Mono</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -277,9 +292,10 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="label_6">
       <property name="font">
        <font>
-        <family>Courier</family>
-        <weight>75</weight>
-        <bold>true</bold>
+        <family>JetBrains Mono</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
