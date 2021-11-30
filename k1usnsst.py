@@ -275,7 +275,7 @@ class MainWindow(QtWidgets.QMainWindow):
 					for x in pref:
 						_, self.mycall, self.myexchange, self.qrzname, self.qrzpass, self.qrzurl, self.useqrz, self.userigctl ,self.rigctrlhost, self.rigctrlport, self.usehamdb = x
 						logging.debug(f"readpreferences: {x}")
-						self.mycallEntry.setText(self.myexchange)
+						self.mycallEntry.setText(self.mycall)
 						self.myexchangeEntry.setText(self.myexchange)
 				else:
 					sql = f"INSERT INTO preferences(id, mycallsign, myexchange) VALUES(1,'{self.mycall}','{self.myexchange}')"
