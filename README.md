@@ -34,3 +34,25 @@ Then build the binary.
 `pyinstaller -F k1usnsst.spec`
 
 Look in the newly created dist directory to find your binary.
+
+## QRZ / HamDB / CAT
+
+If you wish to used QRZ to look up the full name and gridsquare for inclusion in your adif log, Click the gear icon in the lower right corner and enter your username and password for QRZ. Then place a check in the 'use QRZ' box.
+If you don't subscribe to the QRZ service, you can place a check in the 'use HamDB' box.
+
+The program can monitor your radio for band changes if you configure `rigctld`. Just place a check in the 'Use RigControl' box.
+
+If you don't have rigctld and your a Debian/Ubuntu based Linux user you can install it with:
+
+`sudo apt install libhamlib-utils`
+
+rigctld supplied with version 4 of hamlib segfaults/crashes periodically. I don't know why. I may switch shortly in the future to flrig xmlrpc. But in the mean time I wrote a bash script to relaunch it whenever it dies.
+
+```
+#!/bin/bash
+
+while true
+do
+rigctld -m 114 -r /dev/ttyUSB1
+done
+```
