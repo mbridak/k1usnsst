@@ -22,3 +22,15 @@ You can install libraries via pip:
 Just make k1usnsst.py executable and run it within the same folder, or type:
 
 `python3 k1usnsst.py`
+
+## Building a binary executable
+
+I've included a .spec file in case you wished to create your own binary from the source. To use it, first install pyinstaller.
+
+`python3 -m pip3 install pyinstaller`
+
+Then build the binary.
+
+`pyinstaller -F k1usnsst.spec`
+
+Look in the newly created dist directory to find your binary.
