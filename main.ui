@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>715</width>
-    <height>252</height>
+    <width>714</width>
+    <height>233</height>
    </rect>
   </property>
   <property name="font">
@@ -273,8 +273,8 @@ color: rgb(211, 215, 207);</string>
    <widget class="QPushButton" name="genLogButton">
     <property name="geometry">
      <rect>
-      <x>565</x>
-      <y>203</y>
+      <x>537</x>
+      <y>200</y>
       <width>141</width>
       <height>25</height>
      </rect>
@@ -568,6 +568,26 @@ color: rgb(211, 215, 207);</string>
     </property>
     <property name="placeholderText">
      <string>Your Exchange</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="settings_gear">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>200</y>
+      <width>28</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>icon/gear16x16.png</normaloff>icon/gear16x16.png</iconset>
     </property>
    </widget>
   </widget>

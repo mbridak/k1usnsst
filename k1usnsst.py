@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 
 import requests
 import sys
@@ -62,12 +62,17 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.QRZ_icon.setStyleSheet("color: rgb(136, 138, 133);")
 		self.genLogButton.clicked.connect(self.generateLogs)
 		self.band_selector.activated.connect(self.changeband)
+		self.settings_gear.clicked.connect(self.settingspressed)
 		self.radiochecktimer = QtCore.QTimer()
 		self.radiochecktimer.timeout.connect(self.Radio)
 		self.radiochecktimer.start(1000)
 		self.changeband()
 
-	
+	def settingspressed(self):
+		settingsdialog = Settings()
+		settingsdialog.setup(self.database)
+		settingsdialog.exec()
+		self.readpreferences()
 
 	def relpath(self, filename):
 		"""
@@ -205,15 +210,6 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.setStyleSheet("background-color: rgb(42, 42, 42);\ncolor: rgb(211, 215, 207);")
 		app.processEvents()
 
-	def keyPressEvent(self, event):
-		if(event.key() == 16777216): #ESC
-			self.clearinputs()
-
-	def clearinputs(self):
-		self.callsign_entry.clear()
-		self.exchange_entry.clear()
-		self.callsign_entry.setFocus()
-
 	def changemycall(self):
 		text = self.mycallEntry.text()
 		if(len(text)):
@@ -302,6 +298,7 @@ class MainWindow(QtWidgets.QMainWindow):
 					conn.commit()
 		except Error as e:
 			logging.critical(f"readpreferences: {e}")
+		self.qrzauth()
 
 	def writepreferences(self):
 		try:
@@ -404,7 +401,7 @@ class MainWindow(QtWidgets.QMainWindow):
 						payload = {'s':self.qrzsession, 'callsign':call}
 						r=requests.get(self.qrzurl,params=payload, timeout=3.0)
 				grid, name = self.parseLookup(r)
-			elif internet_good:
+			elif internet_good and self.usehamdb:
 				r=requests.get(f"http://api.hamdb.org/v1/{call}/xml/k1usnsstlogger",timeout=5.0)
 				grid, name = self.parseLookup(r)
 		except:
@@ -584,7 +581,6 @@ class editQSODialog(QtWidgets.QDialog):
 			logging.critical(f"editQSODialog.saveChanges: {e}")
 		self.change.lineChanged.emit()
 
-
 	def delete_contact(self):
 		try:
 			conn = sqlite3.connect(self.database)
@@ -618,19 +614,14 @@ class Settings(QtWidgets.QDialog):
 			pref = c.fetchall()
 			if len(pref) > 0:
 				for x in pref:
-					_, _, _, _, _, _, _, _, _, qrzname, qrzpass, qrzurl, cloudlogapi, cloudlogurl, useqrz, usecloudlog, userigcontrol, rigctrlhost, rigctrlport, markerfile, usemarker, usehamdb = x
+					_, _, _, qrzname, qrzpass, qrzurl,  useqrz, userigcontrol, rigctrlhost, rigctrlport, usehamdb = x
 					self.qrzname_field.setText(qrzname)
 					self.qrzpass_field.setText(qrzpass)
 					self.qrzurl_field.setText(qrzurl)
-					self.cloudlogapi_field.setText(cloudlogapi)
-					self.cloudlogurl_field.setText(cloudlogurl)
 					self.rigcontrolip_field.setText(rigctrlhost)
 					self.rigcontrolport_field.setText(rigctrlport)
-					self.usecloudlog_checkBox.setChecked(bool(usecloudlog))
 					self.useqrz_checkBox.setChecked(bool(useqrz))
 					self.userigcontrol_checkBox.setChecked(bool(userigcontrol))
-					self.markerfile_field.setText(markerfile)
-					self.generatemarker_checkbox.setChecked(bool(usemarker))
 					self.usehamdb_checkBox.setChecked(bool(usehamdb))
 		except Error as e:
 			print(e)
@@ -645,7 +636,7 @@ class Settings(QtWidgets.QDialog):
 	def saveChanges(self):
 		try:
 			conn = sqlite3.connect(self.database)
-			sql = f"UPDATE preferences SET qrzusername = '{self.qrzname_field.text()}', qrzpassword = '{self.qrzpass_field.text()}', qrzurl = '{self.qrzurl_field.text()}', cloudlogapi = '{self.cloudlogapi_field.text()}', cloudlogurl = '{self.cloudlogurl_field.text()}', rigcontrolip = '{self.rigcontrolip_field.text()}', rigcontrolport = '{self.rigcontrolport_field.text()}', useqrz = '{int(self.useqrz_checkBox.isChecked())}', usecloudlog = '{int(self.usecloudlog_checkBox.isChecked())}', userigcontrol = '{int(self.userigcontrol_checkBox.isChecked())}', markerfile = '{self.markerfile_field.text()}', usemarker = '{int(self.generatemarker_checkbox.isChecked())}', usehamdb = '{int(self.usehamdb_checkBox.isChecked())}'  where id=1;"
+			sql = f"UPDATE preferences SET qrzusername = '{self.qrzname_field.text()}', qrzpassword = '{self.qrzpass_field.text()}', qrzurl = '{self.qrzurl_field.text()}', rigcontrolip = '{self.rigcontrolip_field.text()}', rigcontrolport = '{self.rigcontrolport_field.text()}', useqrz = '{int(self.useqrz_checkBox.isChecked())}',  userigcontrol = '{int(self.userigcontrol_checkBox.isChecked())}', usehamdb = '{int(self.usehamdb_checkBox.isChecked())}'  where id=1;"
 			cur = conn.cursor()
 			cur.execute(sql)
 			conn.commit()
