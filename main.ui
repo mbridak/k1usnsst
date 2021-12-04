@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>714</width>
+    <width>730</width>
     <height>233</height>
    </rect>
   </property>
@@ -38,7 +38,7 @@ color: rgb(211, 215, 207);</string>
      <rect>
       <x>10</x>
       <y>40</y>
-      <width>551</width>
+      <width>561</width>
       <height>151</height>
      </rect>
     </property>
@@ -49,6 +49,9 @@ color: rgb(211, 215, 207);</string>
       <weight>50</weight>
       <bold>false</bold>
      </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(94, 92, 100)</string>
     </property>
     <property name="frameShape">
      <enum>QFrame::WinPanel</enum>
@@ -61,7 +64,7 @@ color: rgb(211, 215, 207);</string>
       <rect>
        <x>5</x>
        <y>11</y>
-       <width>541</width>
+       <width>551</width>
        <height>131</height>
       </rect>
      </property>
@@ -79,6 +82,7 @@ color: rgb(211, 215, 207);</string>
      </property>
      <property name="styleSheet">
       <string notr="true">alternate-background-color: rgb(66, 66, 66);
+color: rgb(255, 255, 255);
 </string>
      </property>
      <property name="editTriggers">
@@ -273,7 +277,7 @@ color: rgb(211, 215, 207);</string>
    <widget class="QPushButton" name="genLogButton">
     <property name="geometry">
      <rect>
-      <x>537</x>
+      <x>551</x>
       <y>200</y>
       <width>141</width>
       <height>25</height>
@@ -404,7 +408,7 @@ color: rgb(211, 215, 207);</string>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>571</x>
+      <x>585</x>
       <y>40</y>
       <width>58</width>
       <height>19</height>
@@ -426,7 +430,7 @@ color: rgb(211, 215, 207);</string>
    <widget class="QLabel" name="Total_CW">
     <property name="geometry">
      <rect>
-      <x>631</x>
+      <x>645</x>
       <y>40</y>
       <width>71</width>
       <height>20</height>
@@ -450,7 +454,7 @@ color: rgb(211, 215, 207);</string>
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>571</x>
+      <x>585</x>
       <y>60</y>
       <width>58</width>
       <height>19</height>
@@ -471,7 +475,7 @@ color: rgb(211, 215, 207);</string>
    <widget class="QLabel" name="Total_Mults">
     <property name="geometry">
      <rect>
-      <x>631</x>
+      <x>645</x>
       <y>60</y>
       <width>71</width>
       <height>20</height>
@@ -495,7 +499,7 @@ color: rgb(211, 215, 207);</string>
    <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
-      <x>571</x>
+      <x>585</x>
       <y>80</y>
       <width>58</width>
       <height>19</height>
@@ -516,7 +520,7 @@ color: rgb(211, 215, 207);</string>
    <widget class="QLabel" name="Total_Score">
     <property name="geometry">
      <rect>
-      <x>631</x>
+      <x>645</x>
       <y>80</y>
       <width>71</width>
       <height>19</height>
@@ -573,7 +577,7 @@ color: rgb(211, 215, 207);</string>
    <widget class="QPushButton" name="settings_gear">
     <property name="geometry">
      <rect>
-      <x>680</x>
+      <x>694</x>
       <y>200</y>
       <width>28</width>
       <height>24</height>
