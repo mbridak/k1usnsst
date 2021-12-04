@@ -378,8 +378,8 @@ color: rgb(211, 215, 207);</string>
      <font>
       <family>JetBrains Mono</family>
       <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="toolTip">
