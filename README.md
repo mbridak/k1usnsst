@@ -7,6 +7,11 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 
 ![mainscreen](pics/k1usnsst_main.png "Main Screen")
 
+## Changes since release tag: 21.12.4b Burning Paper Airplane
+
+* Feature: Added dupe checking.
+* Refactor: Enclosed SQL access with in with statements. Code cleanup.
+
 ## Running from source
 
 Install Python 3, then two required libraries.
