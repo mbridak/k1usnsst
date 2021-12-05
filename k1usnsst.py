@@ -87,6 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
 	def has_internet(self):
 		"""
 		Connect to a main DNS server to check connectivity.
+		Returns True/False
 		"""
 		try:
 			socket.create_connection(("1.1.1.1", 53))
@@ -257,10 +258,6 @@ class MainWindow(QtWidgets.QMainWindow):
 		"""
 		text = self.exchange_entry.text()
 		if(len(text)):
-			#if text[-1] == " ":
-			#	self.callsign_entry.setText(text.strip())
-			#	self.exchange_entry.setFocus()
-			#else:
 			cleaned = ''.join(ch for ch in text if ch.isalpha() or ch ==' ').upper()
 			self.exchange_entry.setText(cleaned)
 
@@ -341,7 +338,6 @@ class MainWindow(QtWidgets.QMainWindow):
 				conn.commit()
 		except Error as e:
 			logging.critical(f"Log Contact: {e}")
-		#self.stats()
 		self.logwindow()
 		self.clearinputs()
 
@@ -375,7 +371,6 @@ class MainWindow(QtWidgets.QMainWindow):
 		"""
 		Perform functions after QSO edited or deleted.
 		"""
-		#self.stats()
 		self.logwindow()
 
 	def qrzauth(self):
@@ -422,7 +417,6 @@ class MainWindow(QtWidgets.QMainWindow):
 				r=requests.get(f"http://api.hamdb.org/v1/{call}/xml/k1usnsstlogger",timeout=5.0)
 				grid, name = self.parseLookup(r)
 		except:
-			#self.infobox.insertPlainText(f"Something Smells...\n")
 			logging.warn("Lookup Failed")
 		if grid == "NOT_FOUND": grid = False
 		if name == "NOT_FOUND": name = False
@@ -451,9 +445,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 	def adif(self):
 		logname = "SST.adi"
-		#self.infobox.setTextColor(QtGui.QColor(211, 215, 207))
 		logging.info(f"Saving ADIF to: {logname}\n")
-		#app.processEvents()
 		try:
 			with sqlite3.connect(self.database) as conn:
 				c = conn.cursor()
@@ -495,9 +487,6 @@ class MainWindow(QtWidgets.QMainWindow):
 				contest = "K1USN-SST"
 				print(f"<CONTEST_ID:{len(contest)}>{contest}", end='\r\n', file=f)
 				print("<EOR>", end='\r\n', file=f)
-				print("", end='\r\n', file=f)
-			#self.infobox.insertPlainText("Done\n\n")
-		app.processEvents()
 
 	def calcscore(self):
 		"""
@@ -551,9 +540,6 @@ class MainWindow(QtWidgets.QMainWindow):
 		return []
 		
 	def generateLogs(self):
-		#self.infobox.clear()
-		#self.cabrillo()
-		#self.generateBandModeTally()
 		self.adif()
 
 class editQSODialog(QtWidgets.QDialog):
@@ -600,14 +586,13 @@ class editQSODialog(QtWidgets.QDialog):
 
 	def delete_contact(self):
 		try:
-			conn = sqlite3.connect(self.database)
-			sql = f"delete from contacts where id={self.theitem}"
-			cur = conn.cursor()
-			cur.execute(sql)
-			conn.commit()
-			conn.close()
+			with sqlite3.connect(self.database) as conn:
+				sql = f"delete from contacts where id={self.theitem}"
+				cur = conn.cursor()
+				cur.execute(sql)
+				conn.commit()
 		except Error as e:
-			print(e)
+			logging.critical(f"editQSODialog.delete_contact: {e}")
 		self.change.lineChanged.emit()
 		self.close()
 
@@ -625,10 +610,10 @@ class Settings(QtWidgets.QDialog):
 	def setup(self, thedatabase):
 		self.database = thedatabase
 		try:
-			conn = sqlite3.connect(self.database)
-			c = conn.cursor()	
-			c.execute("select * from preferences where id = 1")
-			pref = c.fetchall()
+			with sqlite3.connect(self.database) as conn:
+				c = conn.cursor()	
+				c.execute("select * from preferences where id = 1")
+				pref = c.fetchall()
 			if len(pref) > 0:
 				for x in pref:
 					_, _, _, qrzname, qrzpass, qrzurl,  useqrz, userigcontrol, rigctrlhost, rigctrlport, usehamdb = x
@@ -641,7 +626,7 @@ class Settings(QtWidgets.QDialog):
 					self.userigcontrol_checkBox.setChecked(bool(userigcontrol))
 					self.usehamdb_checkBox.setChecked(bool(usehamdb))
 		except Error as e:
-			print(e)
+			logging.critical(f"Settings.setup: {e}")
 
 	def relpath(self, filename):
 		try:
@@ -652,14 +637,13 @@ class Settings(QtWidgets.QDialog):
 
 	def saveChanges(self):
 		try:
-			conn = sqlite3.connect(self.database)
-			sql = f"UPDATE preferences SET qrzusername = '{self.qrzname_field.text()}', qrzpassword = '{self.qrzpass_field.text()}', qrzurl = '{self.qrzurl_field.text()}', rigcontrolip = '{self.rigcontrolip_field.text()}', rigcontrolport = '{self.rigcontrolport_field.text()}', useqrz = '{int(self.useqrz_checkBox.isChecked())}',  userigcontrol = '{int(self.userigcontrol_checkBox.isChecked())}', usehamdb = '{int(self.usehamdb_checkBox.isChecked())}'  where id=1;"
-			cur = conn.cursor()
-			cur.execute(sql)
-			conn.commit()
-			conn.close()
+			with sqlite3.connect(self.database) as conn:
+				sql = f"UPDATE preferences SET qrzusername = '{self.qrzname_field.text()}', qrzpassword = '{self.qrzpass_field.text()}', qrzurl = '{self.qrzurl_field.text()}', rigcontrolip = '{self.rigcontrolip_field.text()}', rigcontrolport = '{self.rigcontrolport_field.text()}', useqrz = '{int(self.useqrz_checkBox.isChecked())}',  userigcontrol = '{int(self.userigcontrol_checkBox.isChecked())}', usehamdb = '{int(self.usehamdb_checkBox.isChecked())}'  where id=1;"
+				cur = conn.cursor()
+				cur.execute(sql)
+				conn.commit()
 		except Error as e:
-			print(e)
+			logging.critical(f"Settings.saveChanges: {e}")
 
 app = QtWidgets.QApplication(sys.argv)
 app.setStyle('Fusion')
