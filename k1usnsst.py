@@ -190,6 +190,7 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.clearinputs()
 
 	def clearinputs(self):
+		self.dupe_indicator.setText("")
 		self.callsign_entry.clear()
 		self.exchange_entry.clear()
 		self.callsign_entry.setFocus()
@@ -264,7 +265,23 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.exchange_entry.setText(cleaned)
 
 	def dupCheck(self):
-		pass
+		acall = self.callsign_entry.text()
+		try:
+			with sqlite3.connect(self.database) as conn:
+				c = conn.cursor()
+				c.execute(f"select callsign, name, sandpdx, band from contacts where callsign like '{acall}' order by band")
+				log = c.fetchall()
+		except Error as e:
+			logging.critical(f"dupCheck: {e}")
+			return
+		for x in log:
+			hiscall, hisname, sandpdx, hisband = x
+			if len(self.exchange_entry.text()) == 0: self.exchange_entry.setText(f"{hisname} {sandpdx}")
+			dupetext=""
+			if hisband == self.band:
+				self.flash()
+				dupetext = " DUP!!!"
+			self.dupe_indicator.setText(dupetext)
 
 	def create_DB(self):
 		""" create a database and table if it does not exist """

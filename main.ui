@@ -594,6 +594,28 @@ color: rgb(255, 255, 255);
       <normaloff>icon/gear16x16.png</normaloff>icon/gear16x16.png</iconset>
     </property>
    </widget>
+   <widget class="QLabel" name="dupe_indicator">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>204</y>
+      <width>58</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>JetBrains Mono</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(230, 97, 0);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>
