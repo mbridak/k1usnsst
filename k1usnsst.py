@@ -46,7 +46,9 @@ class MainWindow(QtWidgets.QMainWindow):
 	useqrz = False
 	oldfreq = None
 	band = None
-
+	rigonline = False
+	dfreq = {'160':"1830000", '80':"3530000", '60':"5340000", '40':"7030000", '20':"14030000", '15':"21030000", '10':"28030000", '6':"50030000", '2':"144030000", '222':"222030000", '432':"432030000"}
+	
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		uic.loadUi(self.relpath("main.ui"), self)
@@ -136,6 +138,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		Sets the internal band used for logging to the onscreen dropdown value.
 		"""
 		self.band = self.band_selector.currentText()
+		if not self.rigonline: self.oldfreq = self.dfreq[self.band]
 
 	def setband(self, theband):
 		self.band_selector.setCurrentIndex(self.band_selector.findText(theband))
@@ -165,7 +168,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		Checks to see if rigctld daemon is running.
 		"""
 		if self.userigctl:
-			self.rigctrlsocket=socket.socket()
+			self.rigctrlsocket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.rigctrlsocket.settimeout(0.1)
 			self.rigonline = True
 			try:
@@ -285,7 +288,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		try:
 			with sqlite3.connect(self.database) as conn:
 				c = conn.cursor()
-				sql_table = """ CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY, callsign text NOT NULL, name text NOT NULL, sandpdx text NOT NULL, date_time text NOT NULL, band text NOT NULL, grid text NOT NULL, opname text NOT NULL); """
+				sql_table = """ CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY, callsign text NOT NULL, name text NOT NULL, sandpdx text NOT NULL, date_time text NOT NULL, frequency text NOT NULL, band text NOT NULL, grid text NOT NULL, opname text NOT NULL); """
 				c.execute(sql_table)
 				sql_table = """ CREATE TABLE IF NOT EXISTS preferences (id INTEGER PRIMARY KEY, mycallsign TEXT DEFAULT '', myexchange TEXT DEFAULT '', qrzusername TEXT DEFAULT 'w1aw', qrzpassword TEXT default 'secret', qrzurl TEXT DEFAULT 'https://xmldata.qrz.com/xml/', useqrz INTEGER DEFAULT 0, userigcontrol INTEGER DEFAULT 1, rigcontrolip TEXT DEFAULT '127.0.0.1', rigcontrolport TEXT DEFAULT '4532', usehamdb INTEGER DEFAULT 0); """
 				c.execute(sql_table)
@@ -328,10 +331,10 @@ class MainWindow(QtWidgets.QMainWindow):
 	def log_contact(self):
 		if(len(self.callsign_entry.text()) == 0 or len(self.exchange_entry.text()) == 0): return
 		grid, opname = self.qrzlookup(self.callsign_entry.text())
-		contact = (self.callsign_entry.text(), self.exchange_entry.text().split()[0], self.exchange_entry.text().split()[1], self.band, grid, opname)
+		contact = (self.callsign_entry.text(), self.exchange_entry.text().split()[0], self.exchange_entry.text().split()[1], self.oldfreq, self.band, grid, opname)
 		try:
 			with sqlite3.connect(self.database) as conn:
-				sql = "INSERT INTO contacts(callsign, name, sandpdx, date_time, band, grid, opname) VALUES(?,?,?,datetime('now'),?,?,?)"
+				sql = "INSERT INTO contacts(callsign, name, sandpdx, date_time, frequency, band, grid, opname) VALUES(?,?,?,datetime('now'),?,?,?,?)"
 				logging.debug(f"log_contact: {sql}\n{contact}")
 				cur = conn.cursor()
 				cur.execute(sql, contact)
@@ -351,7 +354,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		except Error as e:
 			logging.critical(f"logwindow: {e}")
 		for x in log:
-			logid, hiscall, hisname, sandpdx, datetime, band, _, _ = x
+			logid, hiscall, hisname, sandpdx, datetime, frequency, band, _, _ = x
 			logline = f"{str(logid).rjust(3,'0')} {hiscall.ljust(11)} {hisname.ljust(12)} {sandpdx} {datetime} {str(band).rjust(3)}"
 			self.listWidget.addItem(logline)
 		self.calcscore()
@@ -461,7 +464,7 @@ class MainWindow(QtWidgets.QMainWindow):
 			print("<EOH>", end='\r\n', file=f)
 			mode = "CW"
 			for x in log:
-				_, hiscall, hisname, sandpdx, datetime, band, grid, opname = x
+				_, hiscall, hisname, sandpdx, datetime, frequency,band, grid, opname = x
 				loggeddate = datetime[:10]
 				loggedtime = datetime[11:13] + datetime[14:16]
 				print(f"<QSO_DATE:{len(''.join(loggeddate.split('-')))}:d>{''.join(loggeddate.split('-'))}", end='\r\n', file=f)
@@ -469,10 +472,8 @@ class MainWindow(QtWidgets.QMainWindow):
 				print(f"<CALL:{len(hiscall)}>{hiscall}", end='\r\n', file=f)
 				print(f"<MODE:{len(mode)}>{mode}", end='\r\n', file=f)
 				print(f"<BAND:{len(band + 'M')}>{band + 'M'}", end='\r\n', file=f)
-				try:
-					print(f"<FREQ:{len(self.dfreq[band])}>{self.dfreq[band]}", end='\r\n', file=f)
-				except:
-					pass # This is bad form... I can't remember why this is in a try block
+				freq = str(int(frequency)/1000000)
+				print(f"<FREQ:{len(freq)}>{freq}", end='\r\n', file=f)
 				print("<RST_SENT:3>599", end='\r\n', file=f)
 				print("<RST_RCVD:3>599", end='\r\n', file=f)
 				print(f"<STX_STRING:{len(self.myexchangeEntry.text())}>{self.myexchangeEntry.text()}", end='\r\n', file=f)
