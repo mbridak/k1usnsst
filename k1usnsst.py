@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.CRITICAL)
 
 import requests
 import sys
@@ -493,6 +493,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		"""
 		determine the amount od QSO's, S/P per band, DX per band.
 		"""
+		logging.debug("calcscore()")
 		total_qso = 0
 		total_mults = 0
 		total_score = 0
@@ -517,9 +518,9 @@ class MainWindow(QtWidgets.QMainWindow):
 			total_qso += qso[0]
 			total_mults += (sandp[0]+dx[0])
 			total_score = total_qso * total_mults
-			self.Total_CW.setText(str(total_qso))
-			self.Total_Mults.setText(str(total_mults))
-			self.Total_Score.setText(str(total_score))
+		self.Total_CW.setText(str(total_qso))
+		self.Total_Mults.setText(str(total_mults))
+		self.Total_Score.setText(str(total_score))
 
 	def getbands(self):
 		"""
