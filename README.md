@@ -11,6 +11,10 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 
 * Feature: Added dupe checking.
 * Refactor: Enclosed SQL access with in with statements. Code cleanup.
+* Fix: Added frequency to logged data.
+* Feature: if no CAT, added default freq based on band.
+* Fix: clarified socket type for CAT
+* Fix: If all contacts deleted, leaving zero contacts, the onscreen score would not reflect a score of zero.
 
 ## Running from source
 
