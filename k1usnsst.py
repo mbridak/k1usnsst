@@ -266,6 +266,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 	def dupCheck(self):
 		acall = self.callsign_entry.text()
+		dupetext=""
 		try:
 			with sqlite3.connect(self.database) as conn:
 				c = conn.cursor()
@@ -277,7 +278,6 @@ class MainWindow(QtWidgets.QMainWindow):
 		for x in log:
 			hiscall, hisname, sandpdx, hisband = x
 			if len(self.exchange_entry.text()) == 0: self.exchange_entry.setText(f"{hisname} {sandpdx}")
-			dupetext=""
 			if hisband == self.band:
 				self.flash()
 				dupetext = " DUP!!!"
@@ -662,4 +662,4 @@ window.callsign_entry.setFocus()
 timer = QtCore.QTimer()
 timer.timeout.connect(window.updateTime)
 timer.start(1000)
-app.exec()
+sys.exit(app.exec())
