@@ -281,7 +281,7 @@ class MainWindow(QtWidgets.QMainWindow):
 			if hisband == self.band:
 				self.flash()
 				dupetext = " DUP!!!"
-			self.dupe_indicator.setText(dupetext)
+				self.dupe_indicator.setText(dupetext)
 
 	def create_DB(self):
 		""" create a database and table if it does not exist """
@@ -456,6 +456,7 @@ class MainWindow(QtWidgets.QMainWindow):
 				log = c.fetchall()
 		except Error as e:
 			logging.critical(f"adif: {e}")
+			self.dupe_indicator.setText("Error!")
 			return
 		grid = False
 		opname = False
@@ -488,6 +489,7 @@ class MainWindow(QtWidgets.QMainWindow):
 				contest = "K1USN-SST"
 				print(f"<CONTEST_ID:{len(contest)}>{contest}", end='\r\n', file=f)
 				print("<EOR>", end='\r\n', file=f)
+		self.dupe_indicator.setText(f"{logname} saved.")
 
 	def calcscore(self):
 		"""
