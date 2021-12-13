@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=k1usnsst
+StartupWMClass=k1usnsst
+GenericName=K1USN-SST logger by K6GTE
+Comment=Amateur Radio Communications
+Exec=k1usnsst
+Icon=k6gte-k1usnsst
+Terminal=false
+Type=Application
+Categories=HamRadio;
