@@ -15,6 +15,7 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 * Feature: if no CAT, added default freq based on band.
 * Fix: clarified socket type for CAT
 * Fix: If all contacts deleted, leaving zero contacts, the onscreen score would not reflect a score of zero.
+* Feat: Added SST_Statistics.txt file for breakdown of band / QSO / Mults
 
 ## Running from source
 
@@ -65,3 +66,14 @@ do
 rigctld -m 114 -r /dev/ttyUSB1
 done
 ```
+
+## When the event is over
+
+Click the 'Generate Log' button inn the lower right side of the screen.
+Two files will be generated.
+
+SST_Statistics.txt, which holds a breakdown of bands / QSOs / Mults, and a points total for the event.
+
+SST.adi, an ADIF file you can use to merge into your main log if you so choose.
+
+Before the next SST event you should delete the SST.db file to start fresh.
