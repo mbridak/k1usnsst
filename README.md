@@ -45,6 +45,9 @@ Then build the binary.
 
 Look in the newly created dist directory to find your binary.
 
+## Install a Linux icon
+If, after you build a binary, you would like to install a desktop icon, you can `cd` into the `install_icon` folder and run `install.sh`. it will copy the executable from the `dist` directory into `~/.local/bin` and install a lovely icon and desktop launcher.
+
 ## QRZ / HamDB / CAT
 
 If you wish to used QRZ to look up the full name and gridsquare for inclusion in your adif log, Click the gear icon in the lower right corner and enter your username and password for QRZ. Then place a check in the 'use QRZ' box.
