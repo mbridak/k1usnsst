@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-logging.basicConfig(level=logging.CRITICAL)
+logging.basicConfig(level=logging.DEBUG)
 
 import requests
 import sys
@@ -499,7 +499,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		total_qso = 0
 		total_mults = 0
 		total_score = 0
-
+		with open("SST_Statistics.txt", "w", encoding='ascii') as f: print(f"", file=f)
 		bandsworked = self.getbands()
 		for band in bandsworked:
 			try:
@@ -514,6 +514,7 @@ class MainWindow(QtWidgets.QMainWindow):
 					query = f"select count(*) from contacts where band='{band}' and sandpdx = 'DX'"
 					c.execute(query)
 					dx = c.fetchone()
+					with open("SST_Statistics.txt", "a", encoding='ascii') as f: print(f"band:{band} QSOs:{qso[0]} state and province:{sandp[0]} dx:{dx[0]} mult:{sandp[0]+dx[0]}", end='\r\n', file=f)
 					logging.debug(f"score: band:{band} q:{qso} s&p:{sandp} dx:{dx}")
 			except Error as e:
 				logging.critical(f"calcscore: {e}")
@@ -523,6 +524,10 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.Total_CW.setText(str(total_qso))
 		self.Total_Mults.setText(str(total_mults))
 		self.Total_Score.setText(str(total_score))
+		with open("SST_Statistics.txt", "a", encoding='ascii') as f:
+			print(f"Total QSO: {total_qso}", end='\r\n', file=f)
+			print(f"Total Mults: {total_mults}", end='\r\n', file=f)
+			print(f"Tptal Score: {total_score}", end='\r\n', file=f)
 
 	def getbands(self):
 		"""
@@ -544,6 +549,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		return []
 		
 	def generateLogs(self):
+		self.calcscore()
 		self.adif()
 
 class editQSODialog(QtWidgets.QDialog):
