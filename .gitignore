@@ -4,3 +4,4 @@ __pycache__/
 *.backup
 *.db
 *.adi
+SST_Statistics.txt
