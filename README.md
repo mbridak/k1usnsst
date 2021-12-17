@@ -7,15 +7,12 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 
 ![mainscreen](pics/k1usnsst_main.png "Main Screen")
 
-## Changes since release tag: 21.12.4b Burning Paper Airplane
+## Changes since release tag: 21.12.12 Rusty Bike Chain
 
-* Feature: Added dupe checking.
-* Refactor: Enclosed SQL access with in with statements. Code cleanup.
-* Fix: Added frequency to logged data.
-* Feature: if no CAT, added default freq based on band.
-* Fix: clarified socket type for CAT
-* Fix: If all contacts deleted, leaving zero contacts, the onscreen score would not reflect a score of zero.
-* Feat: Added SST_Statistics.txt file for breakdown of band / QSO / Mults
+* Feat: Added FLRIG support for monitoring band changes.
+* Feat: Added pyinstaller `.spec` file for building Windows binaries.
+* Feat: Added an icon installer for Linux/Raspberry OS
+* Docs: Updated what your reading now, screen shots etc.
 
 ## Running from source
 
@@ -41,7 +38,13 @@ I've included a .spec file in case you wished to create your own binary from the
 
 Then build the binary.
 
+For Linux/Rasperry OS:
+
 `pyinstaller -F k1usnsst.spec`
+
+for Windows:
+
+`pyinstaller -F windows.spec`
 
 Look in the newly created dist directory to find your binary.
 
@@ -50,25 +53,20 @@ If, after you build a binary, you would like to install a desktop icon, you can 
 
 ## QRZ / HamDB / CAT
 
+![settings screen](pics/k1usnsst_settings.png "Settings Screen")
+
 If you wish to used QRZ to look up the full name and gridsquare for inclusion in your adif log, Click the gear icon in the lower right corner and enter your username and password for QRZ. Then place a check in the 'use QRZ' box.
 If you don't subscribe to the QRZ service, you can place a check in the 'use HamDB' box.
 
-The program can monitor your radio for band changes if you configure `rigctld`. Just place a check in the 'Use RigControl' box.
+The program can monitor your radio for band changes with either `rigctld`, `FLRIG` or None. Fill in the hostname and port for your choice.
 
-If you don't have rigctld and your a Debian/Ubuntu based Linux user you can install it with:
+Common port numbers are 4532 for rigctld and 12345 for FLRIG.
+
+If you don't have rigctld or FLRIG and your a Debian/Ubuntu based Linux user you can install it/them with:
 
 `sudo apt install libhamlib-utils`
 
-rigctld supplied with version 4 of hamlib segfaults/crashes periodically. I don't know why. I may switch shortly in the future to flrig xmlrpc. But in the mean time I wrote a bash script to relaunch it whenever it dies.
-
-```
-#!/bin/bash
-
-while true
-do
-rigctld -m 114 -r /dev/ttyUSB1
-done
-```
+`sudo apt install flrig`
 
 ## When the event is over
 
