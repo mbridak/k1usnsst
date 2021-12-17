@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
+import xmlrpc.client
 import requests
 import sys
 import sqlite3
@@ -40,13 +41,15 @@ class qsoEdit(QtCore.QObject):
 class MainWindow(QtWidgets.QMainWindow):
 
 	database = "SST.db"
+	server=False
 	mycall = ""
 	myexchange =""
 	userigctl = True
+	flrig = False
+	rigonline = False
 	useqrz = False
 	oldfreq = None
 	band = None
-	rigonline = False
 	dfreq = {'160':"1830000", '80':"3530000", '60':"5340000", '40':"7030000", '20':"14030000", '15':"21030000", '10':"28030000", '6':"50030000", '2':"144030000", '222':"222030000", '432':"432030000"}
 	
 	def __init__(self, *args, **kwargs):
@@ -138,7 +141,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		Sets the internal band used for logging to the onscreen dropdown value.
 		"""
 		self.band = self.band_selector.currentText()
-		if not self.rigonline: self.oldfreq = self.dfreq[self.band]
+		if not (self.rigonline or self.flrig): self.oldfreq = self.dfreq[self.band]
 
 	def setband(self, theband):
 		self.band_selector.setCurrentIndex(self.band_selector.findText(theband))
@@ -148,6 +151,17 @@ class MainWindow(QtWidgets.QMainWindow):
 		"""
 		Poll rigctld to get band.
 		"""
+		if self.flrig:
+			try:
+				newfreq = self.server.rig.get_vfo()
+				self.radio_icon.setPixmap(QtGui.QPixmap(self.relpath('icon/radio_green.png')))
+				if newfreq != self.oldfreq:
+						self.oldfreq = newfreq
+						self.setband(str(self.getband(newfreq)))
+			except socket.error as e:
+				self.radio_icon.setPixmap(QtGui.QPixmap(self.relpath('icon/radio_red.png')))
+				logging.warning(f"pollRadio: flrig: {e}")
+			return
 		if self.rigonline:
 			#try:
 				self.rigctrlsocket.settimeout(0.5)
@@ -167,6 +181,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		"""
 		Checks to see if rigctld daemon is running.
 		"""
+		if not (self.flrig or self.userigctl):
+			self.radio_icon.setPixmap(QtGui.QPixmap(self.relpath('icon/radio_grey.png')))
 		if self.userigctl:
 			self.rigctrlsocket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.rigctrlsocket.settimeout(0.1)
@@ -174,11 +190,10 @@ class MainWindow(QtWidgets.QMainWindow):
 			try:
 				logging.debug(f"checkRadio: {self.rigctrlhost} {self.rigctrlport}")
 				self.rigctrlsocket.connect((self.rigctrlhost, int(self.rigctrlport)))
-				self.radio_icon.setPixmap(QtGui.QPixmap(self.relpath('icon/radio_red.png')))
 			except:
 				self.rigonline = False
 				logging.debug("checkRadio: Rig Offline.")
-				self.radio_icon.setPixmap(QtGui.QPixmap(self.relpath('icon/radio_grey.png')))
+				self.radio_icon.setPixmap(QtGui.QPixmap(self.relpath('icon/radio_red.png')))
 		else:
 			self.rigonline = False
 
@@ -290,7 +305,7 @@ class MainWindow(QtWidgets.QMainWindow):
 				c = conn.cursor()
 				sql_table = """ CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY, callsign text NOT NULL, name text NOT NULL, sandpdx text NOT NULL, date_time text NOT NULL, frequency text NOT NULL, band text NOT NULL, grid text NOT NULL, opname text NOT NULL); """
 				c.execute(sql_table)
-				sql_table = """ CREATE TABLE IF NOT EXISTS preferences (id INTEGER PRIMARY KEY, mycallsign TEXT DEFAULT '', myexchange TEXT DEFAULT '', qrzusername TEXT DEFAULT 'w1aw', qrzpassword TEXT default 'secret', qrzurl TEXT DEFAULT 'https://xmldata.qrz.com/xml/', useqrz INTEGER DEFAULT 0, userigcontrol INTEGER DEFAULT 1, rigcontrolip TEXT DEFAULT '127.0.0.1', rigcontrolport TEXT DEFAULT '4532', usehamdb INTEGER DEFAULT 0); """
+				sql_table = """ CREATE TABLE IF NOT EXISTS preferences (id INTEGER PRIMARY KEY, mycallsign TEXT DEFAULT '', myexchange TEXT DEFAULT '', qrzusername TEXT DEFAULT 'w1aw', qrzpassword TEXT default 'secret', qrzurl TEXT DEFAULT 'https://xmldata.qrz.com/xml/', useqrz INTEGER DEFAULT 0, userigcontrol INTEGER DEFAULT 0, rigcontrolip TEXT DEFAULT '127.0.0.1', rigcontrolport TEXT DEFAULT '4532', usehamdb INTEGER DEFAULT 0); """
 				c.execute(sql_table)
 				conn.commit()
 		except Error as e:
@@ -304,8 +319,17 @@ class MainWindow(QtWidgets.QMainWindow):
 				pref = c.fetchall()
 				if len(pref) > 0:
 					for x in pref:
-						_, self.mycall, self.myexchange, self.qrzname, self.qrzpass, self.qrzurl, self.useqrz, self.userigctl ,self.rigctrlhost, self.rigctrlport, self.usehamdb = x
+						_, self.mycall, self.myexchange, self.qrzname, self.qrzpass, self.qrzurl, self.useqrz, userigctl ,self.rigctrlhost, self.rigctrlport, self.usehamdb = x
 						logging.debug(f"readpreferences: {x}")
+						self.flrig = False
+						self.userigctl = False
+						if userigctl == 1:
+							self.flrig=False
+							self.userigctl=True
+						if userigctl == 2:
+							self.flrig=True
+							self.userigctl=False
+							self.server = xmlrpc.client.ServerProxy(f"http://{self.rigctrlhost}:{self.rigctrlport}")
 						self.mycallEntry.setText(self.mycall)
 						self.myexchangeEntry.setText(self.myexchange)
 				else:
@@ -628,12 +652,15 @@ class Settings(QtWidgets.QDialog):
 				for x in pref:
 					_, _, _, qrzname, qrzpass, qrzurl,  useqrz, userigcontrol, rigctrlhost, rigctrlport, usehamdb = x
 					self.qrzname_field.setText(qrzname)
-					self.qrzpass_field.setText(qrzpass)
+					self.qrzpass_field.setText(qrzpass) 
 					self.qrzurl_field.setText(qrzurl)
 					self.rigcontrolip_field.setText(rigctrlhost)
 					self.rigcontrolport_field.setText(rigctrlport)
 					self.useqrz_checkBox.setChecked(bool(useqrz))
-					self.userigcontrol_checkBox.setChecked(bool(userigcontrol))
+					if userigcontrol == 1:
+						self.radioButton_rigctld.setChecked(True)
+					if userigcontrol == 2:
+						self.radioButton_flrig.setChecked(True)
 					self.usehamdb_checkBox.setChecked(bool(usehamdb))
 		except Error as e:
 			logging.critical(f"Settings.setup: {e}")
@@ -647,8 +674,13 @@ class Settings(QtWidgets.QDialog):
 
 	def saveChanges(self):
 		try:
+			userigcontrol = 0
+			if self.radioButton_rigctld.isChecked():
+				userigcontrol = 1
+			if self.radioButton_flrig.isChecked():
+				userigcontrol = 2
 			with sqlite3.connect(self.database) as conn:
-				sql = f"UPDATE preferences SET qrzusername = '{self.qrzname_field.text()}', qrzpassword = '{self.qrzpass_field.text()}', qrzurl = '{self.qrzurl_field.text()}', rigcontrolip = '{self.rigcontrolip_field.text()}', rigcontrolport = '{self.rigcontrolport_field.text()}', useqrz = '{int(self.useqrz_checkBox.isChecked())}',  userigcontrol = '{int(self.userigcontrol_checkBox.isChecked())}', usehamdb = '{int(self.usehamdb_checkBox.isChecked())}'  where id=1;"
+				sql = f"UPDATE preferences SET qrzusername = '{self.qrzname_field.text()}', qrzpassword = '{self.qrzpass_field.text()}', qrzurl = '{self.qrzurl_field.text()}', rigcontrolip = '{self.rigcontrolip_field.text()}', rigcontrolport = '{self.rigcontrolport_field.text()}', useqrz = '{int(self.useqrz_checkBox.isChecked())}',  userigcontrol = '{userigcontrol}', usehamdb = '{int(self.usehamdb_checkBox.isChecked())}'  where id=1;"
 				cur = conn.cursor()
 				cur.execute(sql)
 				conn.commit()
