@@ -341,6 +341,7 @@ color: rgb(211, 215, 207);</string>
    <property name="font">
     <font>
      <family>JetBrains Mono</family>
+     <pointsize>11</pointsize>
     </font>
    </property>
    <property name="styleSheet">
