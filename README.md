@@ -67,7 +67,7 @@ If you don't have rigctld or FLRIG and your a Debian/Ubuntu based Linux user you
 
 ## When the event is over
 
-Click the 'Generate Log' button inn the lower right side of the screen.
+Click the 'Generate Log' button in the lower right side of the screen.
 Two files will be generated.
 
 SST_Statistics.txt, which holds a breakdown of bands / QSOs / Mults, and a points total for the event.
