@@ -10,7 +10,7 @@ import sqlite3
 import socket
 import os
 
-from json import dumps
+from json import dumps, loads
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import QDir
 from PyQt5.QtGui import QFontDatabase
@@ -51,8 +51,21 @@ class MainWindow(QtWidgets.QMainWindow):
 	oldfreq = None
 	band = None
 	dfreq = {'160':"1830000", '80':"3530000", '60':"5340000", '40':"7030000", '20':"14030000", '15':"21030000", '10':"28030000", '6':"50030000", '2':"144030000", '222':"222030000", '432':"432030000"}
+	settings_dict = {
+        "mycallsign":"",
+        "myexchange":"",
+        "qrzusername":"w1aw",
+        "qrzpassword":"secret",
+        "qrzurl":"https://xmldata.qrz.com/xml/",
+        "useqrz":0,
+		"userigcontrol":0,
+		"rigcontrolip":"localhost",
+		"rigcontrolport":"12345",
+		"usehamdb":0
+    }
 	
 	def __init__(self, *args, **kwargs):
+		logging.debug(f"MainWindow: __init__")
 		super().__init__(*args, **kwargs)
 		uic.loadUi(self.relpath("main.ui"), self)
 		self.listWidget.itemDoubleClicked.connect(self.qsoclicked)
@@ -72,10 +85,14 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.radiochecktimer.timeout.connect(self.Radio)
 		self.radiochecktimer.start(1000)
 		self.changeband()
+		self.readpreferences()
+
+
 
 	def settingspressed(self):
+		logging.debug(F"MainWindow: settingspressed")
 		settingsdialog = Settings()
-		settingsdialog.setup(self.database)
+		settingsdialog.setup()
 		settingsdialog.exec()
 		self.readpreferences()
 
@@ -87,6 +104,7 @@ class MainWindow(QtWidgets.QMainWindow):
 			base_path = sys._MEIPASS # pylint: disable=no-member
 		except:
 			base_path = os.path.abspath(".")
+		logging.debug(F"MainWindow: relpath: {base_path}{filename}")
 		return os.path.join(base_path, filename)
 
 	def has_internet(self):
@@ -96,9 +114,10 @@ class MainWindow(QtWidgets.QMainWindow):
 		"""
 		try:
 			socket.create_connection(("1.1.1.1", 53))
+			logging.debug(F"MainWindow: has_internet - True")
 			return True
-		except OSError:
-			pass
+		except OSError as e:
+			logging.debug(F"MainWindow: has_internet: {e}")
 		return False
 
 	def getband(self, freq):
@@ -107,6 +126,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		Returns a (string) band.
 		Returns a "0" if frequency is out of band.
 		"""
+		logging.debug(F"MainWindow: getband: {freq}")
 		if freq.isnumeric():
 			frequency = int(float(freq))
 			if frequency > 1800000 and frequency < 2000000:
@@ -188,8 +208,8 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.rigctrlsocket.settimeout(0.1)
 			self.rigonline = True
 			try:
-				logging.debug(f"checkRadio: {self.rigctrlhost} {self.rigctrlport}")
-				self.rigctrlsocket.connect((self.rigctrlhost, int(self.rigctrlport)))
+				logging.debug(f"checkRadio: {self.settings_dict['rigcontrolip']} {self.settings_dict['rigcontrolport']}")
+				self.rigctrlsocket.connect((self.settings_dict['rigcontrolip'], int(self.settings_dict['rigcontrolport'])))
 			except:
 				self.rigonline = False
 				logging.debug("checkRadio: Rig Offline.")
@@ -238,8 +258,8 @@ class MainWindow(QtWidgets.QMainWindow):
 			else:
 				cleaned = ''.join(ch for ch in text if ch.isalnum() or ch=='/').upper()
 				self.mycallEntry.setText(cleaned)
-		self.mycall = self.mycallEntry.text()
-		if self.mycall !="":
+		self.settings_dict['mycallsign'] = self.mycallEntry.text()
+		if self.settings_dict['mycallsign'] !="":
 			self.mycallEntry.setStyleSheet("border: 1px solid green;")
 		else:
 			self.mycallEntry.setStyleSheet("border: 1px solid red;")
@@ -250,8 +270,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		if(len(text)):
 				cleaned = ''.join(ch for ch in text if ch.isalpha() or ch==" ").upper()
 				self.myexchangeEntry.setText(cleaned)
-		self.myexchange = self.myexchangeEntry.text()
-		if self.myexchange !="":
+		self.settings_dict['myexchange'] = self.myexchangeEntry.text()
+		if self.settings_dict['myexchange'] !="":
 			self.myexchangeEntry.setStyleSheet("border: 1px solid green;")
 		else:
 			self.myexchangeEntry.setStyleSheet("border: 1px solid red;")
@@ -305,52 +325,38 @@ class MainWindow(QtWidgets.QMainWindow):
 				c = conn.cursor()
 				sql_table = """ CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY, callsign text NOT NULL, name text NOT NULL, sandpdx text NOT NULL, date_time text NOT NULL, frequency text NOT NULL, band text NOT NULL, grid text NOT NULL, opname text NOT NULL); """
 				c.execute(sql_table)
-				sql_table = """ CREATE TABLE IF NOT EXISTS preferences (id INTEGER PRIMARY KEY, mycallsign TEXT DEFAULT '', myexchange TEXT DEFAULT '', qrzusername TEXT DEFAULT 'w1aw', qrzpassword TEXT default 'secret', qrzurl TEXT DEFAULT 'https://xmldata.qrz.com/xml/', useqrz INTEGER DEFAULT 0, userigcontrol INTEGER DEFAULT 0, rigcontrolip TEXT DEFAULT '127.0.0.1', rigcontrolport TEXT DEFAULT '4532', usehamdb INTEGER DEFAULT 0); """
-				c.execute(sql_table)
-				conn.commit()
 		except Error as e:
 			logging.critical(f"create_DB: {e}")
 
 	def readpreferences(self):
 		try:
-			with sqlite3.connect(self.database) as conn:
-				c = conn.cursor()
-				c.execute("select * from preferences where id = 1")
-				pref = c.fetchall()
-				if len(pref) > 0:
-					for x in pref:
-						_, self.mycall, self.myexchange, self.qrzname, self.qrzpass, self.qrzurl, self.useqrz, userigctl ,self.rigctrlhost, self.rigctrlport, self.usehamdb = x
-						logging.debug(f"readpreferences: {x}")
-						self.flrig = False
-						self.userigctl = False
-						if userigctl == 1:
-							self.flrig=False
-							self.userigctl=True
-						if userigctl == 2:
-							self.flrig=True
-							self.userigctl=False
-							self.server = xmlrpc.client.ServerProxy(f"http://{self.rigctrlhost}:{self.rigctrlport}")
-						self.mycallEntry.setText(self.mycall)
-						self.myexchangeEntry.setText(self.myexchange)
-				else:
-					sql = f"INSERT INTO preferences(id, mycallsign, myexchange) VALUES(1,'{self.mycall}','{self.myexchange}')"
-					logging.debug(sql)
-					c.execute(sql)
-					conn.commit()
+			home = os.path.expanduser("~")
+			if os.path.exists(home+"/.k1usnsst.json"):
+				f = open(home+"/.k1usnsst.json", "rt")
+				self.settings_dict = loads(f.read())
+				self.mycallEntry.setText(self.settings_dict['mycallsign'])
+				self.myexchangeEntry.setText(self.settings_dict['myexchange'])
+				self.flrig = False
+				self.userigctl = False
+				if self.settings_dict['userigcontrol'] == 1:
+					self.flrig=False
+					self.userigctl=True
+				if self.settings_dict['userigcontrol'] == 2:
+					self.flrig=True
+					self.userigctl=False
+					self.server = xmlrpc.client.ServerProxy(f"http://{self.settings_dict['rigcontrolip']}:{self.settings_dict['rigcontrolport']}")
+			else:
+				f = open(home+"/.k1usnsst.json", "wt")
+				f.write(dumps(self.settings_dict))
 		except Error as e:
 			logging.critical(f"readpreferences: {e}")
 		self.qrzauth()
 
 	def writepreferences(self):
-		try:
-			with sqlite3.connect(self.database) as conn:
-				sql = f"UPDATE preferences SET mycallsign = '{self.mycall}', myexchange = '{self.myexchange}' WHERE id = 1"
-				logging.debug(f"writepreferences: {sql}")
-				cur = conn.cursor()
-				cur.execute(sql)
-				conn.commit()
-		except Error as e:
-			logging.critical(f"writepreferences: {e}")
+		home = os.path.expanduser("~")
+		with open(home+"/.k1usnsst.json", "wt") as f:
+			f.write(dumps(self.settings_dict))
+
 
 	def log_contact(self):
 		if(len(self.callsign_entry.text()) == 0 or len(self.exchange_entry.text()) == 0): return
@@ -404,10 +410,11 @@ class MainWindow(QtWidgets.QMainWindow):
 		"""
 		Get QRZ session key.
 		"""
-		if self.useqrz and self.has_internet():
+		logging.debug(f"qrzauth:")
+		if self.settings_dict['useqrz'] and self.has_internet():
 			try:
-				payload = {'username':self.qrzname, 'password':self.qrzpass}
-				r=requests.get(self.qrzurl,params=payload, timeout=1.0)
+				payload = {'username':self.settings_dict['qrzusername'], 'password':self.settings_dict['qrzpassword']}
+				r=requests.get(self.settings_dict['qrzurl'],params=payload, timeout=1.0)
 				if r.status_code == 200 and r.text.find('<Key>') > 0:
 					self.qrzsession=r.text[r.text.find('<Key>')+5:r.text.find('</Key>')]
 					self.QRZ_icon.setStyleSheet("color: rgb(128, 128, 0);")
@@ -427,22 +434,29 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.qrzsession = False
 
 	def qrzlookup(self, call):
+		logging.debug(f"qrzlookup: {call}")
 		grid = False
 		name = False
 		internet_good = self.has_internet()
 		try:
-			if self.qrzsession and self.useqrz and internet_good:
+			if self.qrzsession and self.settings_dict['useqrz'] and internet_good:
 				payload = {'s':self.qrzsession, 'callsign':call}
-				r=requests.get(self.qrzurl,params=payload, timeout=3.0)
+				logging.debug(f"qrzlookup: sending: {self.settings_dict['qrzurl']} params = {payload}")
+				r=requests.get(self.settings_dict['qrzurl'],params=payload, timeout=3.0)
 				if not r.text.find('<Key>'): #key expired get a new one
+					logging.debug(f"qrzlookup: keyexpired.")
 					self.qrzauth()
 					if self.qrzsession:
+						logging.debug(f"qrzlookup: Resending")
 						payload = {'s':self.qrzsession, 'callsign':call}
-						r=requests.get(self.qrzurl,params=payload, timeout=3.0)
+						r=requests.get(self.settings_dict['qrzurl'],params=payload, timeout=3.0)
 				grid, name = self.parseLookup(r)
-			elif internet_good and self.usehamdb:
+				logging.debug(f"qrzlookup: {grid} {name}")
+			elif internet_good and self.settings_dict['usehamdb']:
+				logging.debug(f"qrzlookup: using hamdb")
 				r=requests.get(f"http://api.hamdb.org/v1/{call}/xml/k1usnsstlogger",timeout=5.0)
 				grid, name = self.parseLookup(r)
+				logging.debug(f"qrzlookup: {grid} {name}")
 		except:
 			logging.warn("Lookup Failed")
 		if grid == "NOT_FOUND": grid = False
@@ -456,7 +470,8 @@ class MainWindow(QtWidgets.QMainWindow):
 			if r.status_code == 200:
 				if r.text.find('<Error>') > 0:
 					errorText = r.text[r.text.find('<Error>')+7:r.text.find('</Error>')]
-					self.infobox.insertPlainText(f"\nQRZ/HamDB Error: {errorText}\n")
+					logging.warn(f"parselookup: QRZ/HamDB Error: {errorText}")
+					self.dupe_indicator.setText(f"\nQRZ/HamDB Error: {errorText}\n")
 				if r.text.find('<grid>') > 0:
 					grid = r.text[r.text.find('<grid>')+6:r.text.find('</grid>')]
 				if r.text.find('<fname>') > 0:
@@ -467,7 +482,7 @@ class MainWindow(QtWidgets.QMainWindow):
 					else:
 						name += " " + r.text[r.text.find('<name>')+6:r.text.find('</name>')]
 		except:
-			self.infobox.insertPlainText(f"Lookup Failed...\n")
+			self.dupe_indicator.setText(f"Lookup Failed...\n")
 		return grid, name
 
 	def adif(self):
@@ -551,7 +566,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		with open("SST_Statistics.txt", "a", encoding='ascii') as f:
 			print(f"Total QSO: {total_qso}", end='\r\n', file=f)
 			print(f"Total Mults: {total_mults}", end='\r\n', file=f)
-			print(f"Tptal Score: {total_score}", end='\r\n', file=f)
+			print(f"Total Score: {total_score}", end='\r\n', file=f)
 
 	def getbands(self):
 		"""
@@ -641,27 +656,22 @@ class Settings(QtWidgets.QDialog):
 		uic.loadUi(self.relpath("settings.ui"), self)
 		self.buttonBox.accepted.connect(self.saveChanges)
  
-	def setup(self, thedatabase):
-		self.database = thedatabase
+	def setup(self):
 		try:
-			with sqlite3.connect(self.database) as conn:
-				c = conn.cursor()	
-				c.execute("select * from preferences where id = 1")
-				pref = c.fetchall()
-			if len(pref) > 0:
-				for x in pref:
-					_, _, _, qrzname, qrzpass, qrzurl,  useqrz, userigcontrol, rigctrlhost, rigctrlport, usehamdb = x
-					self.qrzname_field.setText(qrzname)
-					self.qrzpass_field.setText(qrzpass) 
-					self.qrzurl_field.setText(qrzurl)
-					self.rigcontrolip_field.setText(rigctrlhost)
-					self.rigcontrolport_field.setText(rigctrlport)
-					self.useqrz_checkBox.setChecked(bool(useqrz))
-					if userigcontrol == 1:
-						self.radioButton_rigctld.setChecked(True)
-					if userigcontrol == 2:
-						self.radioButton_flrig.setChecked(True)
-					self.usehamdb_checkBox.setChecked(bool(usehamdb))
+			home = os.path.expanduser("~")
+			with open(home+"/.k1usnsst.json", "rt") as f:
+				self.settings_dict = loads(f.read())
+				self.qrzname_field.setText(self.settings_dict['qrzusername'])
+				self.qrzpass_field.setText(self.settings_dict['qrzpassword']) 
+				self.qrzurl_field.setText(self.settings_dict['qrzurl'])
+				self.rigcontrolip_field.setText(self.settings_dict['rigcontrolip'])
+				self.rigcontrolport_field.setText(self.settings_dict['rigcontrolport'])
+				self.useqrz_checkBox.setChecked(bool(self.settings_dict['useqrz']))
+				if self.settings_dict['userigcontrol'] == 1:
+					self.radioButton_rigctld.setChecked(True)
+				if self.settings_dict['userigcontrol'] == 2:
+					self.radioButton_flrig.setChecked(True)
+				self.usehamdb_checkBox.setChecked(bool(self.settings_dict['usehamdb']))
 		except Error as e:
 			logging.critical(f"Settings.setup: {e}")
 
@@ -674,16 +684,22 @@ class Settings(QtWidgets.QDialog):
 
 	def saveChanges(self):
 		try:
-			userigcontrol = 0
+			self.settings_dict['userigcontrol'] = 0
 			if self.radioButton_rigctld.isChecked():
-				userigcontrol = 1
+				self.settings_dict['userigcontrol'] = 1
 			if self.radioButton_flrig.isChecked():
-				userigcontrol = 2
-			with sqlite3.connect(self.database) as conn:
-				sql = f"UPDATE preferences SET qrzusername = '{self.qrzname_field.text()}', qrzpassword = '{self.qrzpass_field.text()}', qrzurl = '{self.qrzurl_field.text()}', rigcontrolip = '{self.rigcontrolip_field.text()}', rigcontrolport = '{self.rigcontrolport_field.text()}', useqrz = '{int(self.useqrz_checkBox.isChecked())}',  userigcontrol = '{userigcontrol}', usehamdb = '{int(self.usehamdb_checkBox.isChecked())}'  where id=1;"
-				cur = conn.cursor()
-				cur.execute(sql)
-				conn.commit()
+				self.settings_dict['userigcontrol'] = 2
+			self.settings_dict['qrzusername'] = self.qrzname_field.text()
+			self.settings_dict['qrzpassword'] = self.qrzpass_field.text()
+			self.settings_dict['qrzurl'] = self.qrzurl_field.text()
+			self.settings_dict['rigcontrolip'] = self.rigcontrolip_field.text()
+			self.settings_dict['rigcontrolport'] = self.rigcontrolport_field.text()
+			self.settings_dict['useqrz'] = int(self.useqrz_checkBox.isChecked())
+			self.settings_dict['usehamdb'] = int(self.usehamdb_checkBox.isChecked())
+			logging.info(self.settings_dict)
+			home = os.path.expanduser("~")
+			with open(home+"/.k1usnsst.json", "wt") as f:
+				f.write(dumps(self.settings_dict))
 		except Error as e:
 			logging.critical(f"Settings.saveChanges: {e}")
 
