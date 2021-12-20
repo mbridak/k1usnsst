@@ -66,8 +66,8 @@ color: rgb(211, 215, 207);</string>
     <font>
      <family>JetBrains Mono</family>
      <pointsize>11</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -90,8 +90,8 @@ color: rgb(211, 215, 207);</string>
     <font>
      <family>JetBrains Mono</family>
      <pointsize>11</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -114,8 +114,8 @@ color: rgb(211, 215, 207);</string>
     <font>
      <family>JetBrains Mono</family>
      <pointsize>11</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -138,8 +138,8 @@ color: rgb(211, 215, 207);</string>
     <font>
      <family>JetBrains Mono</family>
      <pointsize>11</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -162,8 +162,8 @@ color: rgb(211, 215, 207);</string>
     <font>
      <family>JetBrains Mono</family>
      <pointsize>11</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -341,7 +341,6 @@ color: rgb(211, 215, 207);</string>
    <property name="font">
     <font>
      <family>JetBrains Mono</family>
-     <pointsize>11</pointsize>
     </font>
    </property>
    <property name="styleSheet">
@@ -366,7 +365,7 @@ color: rgb(211, 215, 207);</string>
    <property name="font">
     <font>
      <family>JetBrains Mono</family>
-     <kerning>false</kerning>
+     <kerning>true</kerning>
     </font>
    </property>
    <property name="text">

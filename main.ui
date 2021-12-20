@@ -71,7 +71,7 @@ color: rgb(211, 215, 207);</string>
      <property name="font">
       <font>
        <family>JetBrains Mono</family>
-       <pointsize>12</pointsize>
+       <pointsize>11</pointsize>
        <weight>50</weight>
        <italic>false</italic>
        <bold>false</bold>
@@ -209,8 +209,8 @@ color: rgb(255, 255, 255);
      <font>
       <family>JetBrains Mono</family>
       <pointsize>10</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -599,7 +599,7 @@ color: rgb(255, 255, 255);
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>10</y>
+      <y>9</y>
       <width>121</width>
       <height>20</height>
      </rect>
@@ -608,8 +608,8 @@ color: rgb(255, 255, 255);
      <font>
       <family>JetBrains Mono</family>
       <pointsize>10</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">

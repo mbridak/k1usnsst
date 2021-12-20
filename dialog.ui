@@ -111,12 +111,12 @@ color: rgb(211, 215, 207);</string>
    </property>
    <property name="dateTime">
     <datetime>
-     <hour>16</hour>
+     <hour>0</hour>
      <minute>0</minute>
      <second>6</second>
      <year>2000</year>
      <month>1</month>
-     <day>4</day>
+     <day>5</day>
     </datetime>
    </property>
    <property name="currentSection">
@@ -220,16 +220,17 @@ color: rgb(255, 255, 255);</string>
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>23</x>
+     <x>10</x>
      <y>21</y>
-     <width>98</width>
+     <width>111</width>
      <height>211</height>
     </rect>
    </property>
    <property name="font">
     <font>
      <family>JetBrains Mono</family>
-     <weight>50</weight>
+     <pointsize>11</pointsize>
+     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
