@@ -10,6 +10,7 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 ## Changes since release tag: 21.12.17 Smoking X-Mas Tree Remnants
 
 * Feat: The preferences used to be saved with the main DB file. When it was deleted with each SST, you would have to re-enter qrz username and password, rig control ip and port, etc etc... These are now saved into a file named `.k1usnsst.json` in your home directory.  
+* Fix: Made UI elements more windows friendly.
 
 ## Running from source
 
