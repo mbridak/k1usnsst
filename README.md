@@ -7,12 +7,9 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 
 ![mainscreen](pics/k1usnsst_main.png "Main Screen")
 
-## Changes since release tag: 21.12.12 Rusty Bike Chain
+## Changes since release tag: 21.12.17 Smoking X-Mas Tree Remnants
 
-* Feat: Added FLRIG support for monitoring band changes.
-* Feat: Added pyinstaller `.spec` file for building Windows binaries.
-* Feat: Added an icon installer for Linux/Raspberry OS
-* Docs: Updated what your reading now, screen shots etc.
+* Feat: The preferences used to be saved with the main DB file. When it was deleted with each SST, you would have to re-enter qrz username and password, rig control ip and port, etc etc... These are now saved into a file named `.k1usnsst.json` in your home directory.  
 
 ## Running from source
 
