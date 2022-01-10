@@ -424,10 +424,10 @@ class MainWindow(QtWidgets.QMainWindow):
 					self.QRZ_icon.setStyleSheet("color: rgb(136, 138, 133);")
 				if r.status_code == 200 and r.text.find('<Error>') > 0:
 					errorText = r.text[r.text.find('<Error>')+7:r.text.find('</Error>')]
-					self.infobox.insertPlainText("\nQRZ Error: "+ errorText + "\n")
+					self.dupe_indicator.setText("QRZ Error: "+ errorText)
 					logging.warning(f"QRZ Error: {errorText}")
 			except requests.exceptions.RequestException as e:
-				self.infobox.insertPlainText(f"****QRZ Error****\n{e}\n")
+				self.dupe_indicator.setText(f"QRZ:{e}")
 				logging.warning(f"QRZ Error: {e}")
 		else:
 			self.QRZ_icon.setStyleSheet("color: rgb(26, 26, 26);")
