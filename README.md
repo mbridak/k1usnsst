@@ -7,10 +7,9 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 
 ![mainscreen](pics/k1usnsst_main.png "Main Screen")
 
-## Changes since release tag: 21.12.17 Smoking X-Mas Tree Remnants
+## Changes since release tag: 22.1.10 Sad Uncle Jake
 
-* Feat: The preferences used to be saved with the main DB file. When it was deleted with each SST, you would have to re-enter qrz username and password, rig control ip and port, etc etc... These are now saved into a file named `.k1usnsst.json` in your home directory.  
-* Fix: Made UI elements more windows friendly.
+* Added CW macro function keys, It will make an XMLRPC call on port 8000 to my [PyWinKeyerSerial](https://github.com/mbridak/PyWinKeyerSerial) program, also on github.
 
 ## Running from source
 
@@ -76,3 +75,27 @@ SST_Statistics.txt, which holds a breakdown of bands / QSOs / Mults, and a point
 SST.adi, an ADIF file you can use to merge into your main log if you so choose.
 
 Before the next SST event you should delete the SST.db file to start fresh.
+
+## CW Macros
+
+The program will check in the current working directory for a file called `cwmacros.txt` it will parse the file and configure the new row of 12 buttons along the bottom half of the window. The macros can be activated by either pressing the corresponding function key, or by directly clicking on the button. You can check the file to glean it's structure, but it's pretty straight forward. Each line has 3 sections separated by the pipe `|` character. Here's an example line.
+
+`F3|Run TU|tu {HISNAME} 73 ee`
+
+The first field is the function key to program. The second is the name of the button. And lastly the third is the text you would like to send.
+
+A limited set substitution macros are offered.
+
+`{MYCALL}`
+
+`{HISCALL}`
+
+`{MYNAME}`
+
+`{HISNAME}`
+
+`{MYSTATE}`
+
+`{HISSTATE}`
+
+`{MYEXCHANGE}` in case you're too lazy to type `{MYCALL} {MYSTATE}`
