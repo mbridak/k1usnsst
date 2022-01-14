@@ -10,7 +10,8 @@ a = Analysis(['k1usnsst.py'],
              ('font/*.ttf','font')],
              datas=[('main.ui','.'),
              ('dialog.ui','.'),
-             ('settings.ui','.')
+             ('settings.ui','.'),
+             ('cwmacros.txt','.')
              ],
              hiddenimports=[],
              hookspath=[],

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>730</width>
-    <height>233</height>
+    <height>305</height>
    </rect>
   </property>
   <property name="font">
@@ -614,6 +614,198 @@ color: rgb(255, 255, 255);
     </property>
     <property name="text">
      <string>00/00 00:00:00</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F1">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>237</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F1</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F2">
+    <property name="geometry">
+     <rect>
+      <x>132</x>
+      <y>237</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F2</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F3">
+    <property name="geometry">
+     <rect>
+      <x>254</x>
+      <y>237</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F3</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F6">
+    <property name="geometry">
+     <rect>
+      <x>619</x>
+      <y>237</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F6</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F5">
+    <property name="geometry">
+     <rect>
+      <x>497</x>
+      <y>237</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F5</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F4">
+    <property name="geometry">
+     <rect>
+      <x>375</x>
+      <y>237</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F4</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F11">
+    <property name="geometry">
+     <rect>
+      <x>497</x>
+      <y>272</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F11</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F7">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>272</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F7</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F12">
+    <property name="geometry">
+     <rect>
+      <x>619</x>
+      <y>272</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F12</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F8">
+    <property name="geometry">
+     <rect>
+      <x>132</x>
+      <y>272</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F8</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F10">
+    <property name="geometry">
+     <rect>
+      <x>375</x>
+      <y>272</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F10</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="F9">
+    <property name="geometry">
+     <rect>
+      <x>254</x>
+      <y>272</y>
+      <width>103</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="text">
+     <string>F9</string>
     </property>
    </widget>
   </widget>

@@ -1,0 +1,13 @@
+F1|Run CQ|cq sst {MYCALL} {MYCALL} k
+F2|Run Exch|{HISCALL} {MYEXCHANGE}
+F3|Run TU|tu {HISNAME} 73 ee
+F4|MyCall|{MYCALL}
+F5|Exch|{MYEXCHANGE}
+F6|MyName|{MYNAME}
+F7|MyState|{MYSTATE}
+F8|Roger|r
+F9|AGN?|agn?
+F10|Call?|call?
+F11|Name?|name?
+F12|State?|state?
+
