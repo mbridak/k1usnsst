@@ -2,7 +2,7 @@
 
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.WARNING)
 
 import xmlrpc.client
 import requests
@@ -380,6 +380,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.sendf12()
 
     def sendcw(self, texttosend):
+        logging.debug(f"sendcw: {texttosend}")
         with ServerProxy(self.keyerserver) as proxy:
             try:
                 proxy.k1elsendstring(texttosend)
@@ -986,20 +987,25 @@ class Settings(QtWidgets.QDialog):
             logging.critical(f"Settings.saveChanges: {e}")
 
 
-app = QtWidgets.QApplication(sys.argv)
-app.setStyle("Fusion")
-font_dir = relpath("font")
-families = load_fonts_from_dir(os.fspath(font_dir))
-logging.info(families)
-window = MainWindow()
-window.show()
-window.create_DB()
-window.readpreferences()
-window.readCWmacros()
-window.qrzauth()
-window.logwindow()
-window.callsign_entry.setFocus()
-timer = QtCore.QTimer()
-timer.timeout.connect(window.updateTime)
-timer.start(1000)
-sys.exit(app.exec())
+if __name__ == "__main__":
+    if Path("./debug").exists():
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.WARNING)
+    app = QtWidgets.QApplication(sys.argv)
+    app.setStyle("Fusion")
+    font_dir = relpath("font")
+    families = load_fonts_from_dir(os.fspath(font_dir))
+    logging.info(families)
+    window = MainWindow()
+    window.show()
+    window.create_DB()
+    window.readpreferences()
+    window.readCWmacros()
+    window.qrzauth()
+    window.logwindow()
+    window.callsign_entry.setFocus()
+    timer = QtCore.QTimer()
+    timer.timeout.connect(window.updateTime)
+    timer.start(1000)
+    sys.exit(app.exec())
