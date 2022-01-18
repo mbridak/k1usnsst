@@ -11,7 +11,7 @@ a = Analysis(['k1usnsst.py'],
              datas=[('main.ui','.'),
              ('dialog.ui','.'),
              ('settings.ui','.'),
-             ('cwmacros.txt','.')
+             ('cwmacros_sst.txt','.')
              ],
              hiddenimports=[],
              hookspath=[],
