@@ -7,9 +7,10 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 
 ![mainscreen](pics/k1usnsst_main.png "Main Screen")
 
-## Changes since release tag: 22.1.10 Sad Uncle Jake
+## Changes since release tag: 22.1.14 Cracked Phone Screen
 
-* Added CW macro function keys, It will make an XMLRPC call on port 8000 to my [PyWinKeyerSerial](https://github.com/mbridak/PyWinKeyerSerial) program, also on github.
+* Fixed an odd problem with text fields. If you edited text in a field, after the string was cleaned and validated it would put the cursor at the end of the string, causing you to have to arrow back to edit more.
+* If you pressed TAB to change fields. The text in the field would be highlighted/selected. If you happen to to press any key after that your text would be replaced. Not optimal...  
 
 ## Running from source
 
@@ -78,7 +79,7 @@ Before the next SST event you should delete the SST.db file to start fresh.
 
 ## CW Macros
 
-The program will check in the current working directory for a file called `cwmacros.txt` it will parse the file and configure the new row of 12 buttons along the bottom half of the window. The macros can be activated by either pressing the corresponding function key, or by directly clicking on the button. You can check the file to glean it's structure, but it's pretty straight forward. Each line has 3 sections separated by the pipe `|` character. Here's an example line.
+The program will check in the current working directory for a file called `cwmacros_sst.txt` it will parse the file and configure the new row of 12 buttons along the bottom half of the window. The macros can be activated by either pressing the corresponding function key, or by directly clicking on the button. You can check the file to glean it's structure, but it's pretty straight forward. Each line has 3 sections separated by the pipe `|` character. Here's an example line.
 
 `F3|Run TU|tu {HISNAME} 73 ee`
 
