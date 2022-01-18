@@ -149,11 +149,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if (
             getattr(sys, "frozen", False)
             and hasattr(sys, "_MEIPASS")
-            and not Path("./cwmacros.txt").exists()
+            and not Path("./cwmacros_sst.txt").exists()
         ):
             logging.debug("readCWmacros: copying default macro file.")
-            copyfile(relpath("cwmacros.txt"), "./cwmacros.txt")
-        with open("./cwmacros.txt", "r") as f:
+            copyfile(relpath("cwmacros_sst.txt"), "./cwmacros_sst.txt")
+        with open("./cwmacros_sst.txt", "r") as f:
             for line in f:
                 try:
                     fkey, buttonname, cwtext = line.split("|")
