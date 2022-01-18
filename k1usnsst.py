@@ -354,6 +354,19 @@ class MainWindow(QtWidgets.QMainWindow):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.clearinputs()
+        if event.key() == Qt.Key_Tab:
+            if self.exchange_entry.hasFocus():
+                logging.debug(f"From exchange")
+                self.callsign_entry.setFocus()
+                self.callsign_entry.deselect()
+                self.callsign_entry.end(False)
+                return
+            if self.callsign_entry.hasFocus():
+                logging.debug(f"From callsign")
+                self.exchange_entry.setFocus()
+                self.exchange_entry.deselect()
+                self.exchange_entry.end(False)
+                return
         if event.key() == Qt.Key_F1:
             self.sendf1()
         if event.key() == Qt.Key_F2:
@@ -489,11 +502,14 @@ class MainWindow(QtWidgets.QMainWindow):
             if text[-1] == " ":
                 self.callsign_entry.setText(text.strip())
                 self.exchange_entry.setFocus()
+                self.class_entry.deselect()
             else:
+                washere = self.callsign_entry.cursorPosition()
                 cleaned = "".join(
                     ch for ch in text if ch.isalnum() or ch == "/"
                 ).upper()
                 self.callsign_entry.setText(cleaned)
+                self.callsign_entry.setCursorPosition(washere)
 
     def exchangetest(self):
         """
@@ -501,8 +517,10 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         text = self.exchange_entry.text()
         if len(text):
+            washere = self.exchange_entry.cursorPosition()
             cleaned = "".join(ch for ch in text if ch.isalpha() or ch == " ").upper()
             self.exchange_entry.setText(cleaned)
+            self.exchange_entry.setCursorPosition(washere)
 
     def dupCheck(self):
         acall = self.callsign_entry.text()
