@@ -344,6 +344,9 @@ color: rgb(255, 255, 255);
       <bold>false</bold>
      </font>
     </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
     <property name="placeholderText">
      <string>Exchange</string>
     </property>
@@ -364,6 +367,9 @@ color: rgb(255, 255, 255);
       <weight>50</weight>
       <bold>false</bold>
      </font>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
     </property>
     <property name="toolTip">
      <string>Enter other operators callsign.</string>
