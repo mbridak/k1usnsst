@@ -610,7 +610,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     #
     def log_contact(self):
-        if len(self.callsign_entry.text()) == 0 or len(self.exchange_entry.text()) == 0:
+        if (
+            len(self.callsign_entry.text()) == 0
+            or len(self.exchange_entry.text().split()) < 2
+        ):
             return
         self.pastcontacts[self.callsign_entry.text()] = self.exchange_entry.text()
         self.savepastcontacts()
