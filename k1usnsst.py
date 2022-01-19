@@ -676,6 +676,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Get QRZ session key.
         """
         logging.debug(f"qrzauth:")
+        self.qrzsession = False
         if self.settings_dict["useqrz"] and self.has_internet():
             try:
                 payload = {
@@ -683,7 +684,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     "password": self.settings_dict["qrzpassword"],
                 }
                 r = requests.get(
-                    self.settings_dict["qrzurl"], params=payload, timeout=1.0
+                    self.settings_dict["qrzurl"], params=payload, timeout=5.0
                 )
                 if r.status_code == 200 and r.text.find("<Key>") > 0:
                     self.qrzsession = r.text[
@@ -719,7 +720,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     f"qrzlookup: sending: {self.settings_dict['qrzurl']} params = {payload}"
                 )
                 r = requests.get(
-                    self.settings_dict["qrzurl"], params=payload, timeout=3.0
+                    self.settings_dict["qrzurl"], params=payload, timeout=5.0
                 )
                 if not r.text.find("<Key>"):  # key expired get a new one
                     logging.debug(f"qrzlookup: keyexpired.")
@@ -728,11 +729,13 @@ class MainWindow(QtWidgets.QMainWindow):
                         logging.debug(f"qrzlookup: Resending")
                         payload = {"s": self.qrzsession, "callsign": call}
                         r = requests.get(
-                            self.settings_dict["qrzurl"], params=payload, timeout=3.0
+                            self.settings_dict["qrzurl"], params=payload, timeout=5.0
                         )
                 grid, name = self.parseLookup(r)
                 logging.debug(f"qrzlookup: {grid} {name}")
-            elif internet_good and self.settings_dict["usehamdb"]:
+                if (grid != "NOT_FOUND") or (name != "NOT_FOUND"):
+                    return grid, name
+            if internet_good and self.settings_dict["usehamdb"]:
                 logging.debug(f"qrzlookup: using hamdb")
                 r = requests.get(
                     f"http://api.hamdb.org/v1/{call}/xml/k1usnsstlogger", timeout=5.0
