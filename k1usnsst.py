@@ -85,6 +85,7 @@ class MainWindow(QtWidgets.QMainWindow):
     }
     fkeys = dict()
     keyerserver = "http://localhost:8000"
+    pastcontacts = dict()
 
     def __init__(self, *args, **kwargs):
         logging.debug(f"MainWindow: __init__")
@@ -196,6 +197,26 @@ class MainWindow(QtWidgets.QMainWindow):
         if "F12" in self.fkeys.keys():
             self.F12.setText(f"F12: {self.fkeys['F12'][0]}")
             self.F12.setToolTip(self.fkeys["F12"][1])
+
+    def readpastcontacts(self):
+        try:
+            home = os.path.expanduser("~")
+            if os.path.exists(home + "/pastcontacts.json"):
+                with open(home + "/pastcontacts.json", "rt") as f:
+                    self.pastcontacts = loads(f.read())
+            else:
+                with open(home + "/pastcontacts.json", "wt") as f:
+                    f.write(dumps(self.pastcontacts))
+        except Error as e:
+            logging.critical(f"readpastcontacts: {e}")
+
+    def savepastcontacts(self):
+        try:
+            home = os.path.expanduser("~")
+            with open(home + "/pastcontacts.json", "wt") as f:
+                f.write(dumps(self.pastcontacts))
+        except Error as e:
+            logging.critical(f"savepastcontacts: {e}")
 
     def has_internet(self):
         """
@@ -502,7 +523,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if text[-1] == " ":
                 self.callsign_entry.setText(text.strip())
                 self.exchange_entry.setFocus()
-                self.class_entry.deselect()
+                self.exchange_entry.deselect()
             else:
                 washere = self.callsign_entry.cursorPosition()
                 cleaned = "".join(
@@ -524,6 +545,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def dupCheck(self):
         acall = self.callsign_entry.text()
+        if len(self.exchange_entry.text()) == 0 and (acall in self.pastcontacts.keys()):
+            self.exchange_entry.setText(self.pastcontacts[acall])
         dupetext = ""
         try:
             with sqlite3.connect(self.database) as conn:
@@ -585,9 +608,12 @@ class MainWindow(QtWidgets.QMainWindow):
         with open(home + "/.k1usnsst.json", "wt") as f:
             f.write(dumps(self.settings_dict))
 
+    #
     def log_contact(self):
         if len(self.callsign_entry.text()) == 0 or len(self.exchange_entry.text()) == 0:
             return
+        self.pastcontacts[self.callsign_entry.text()] = self.exchange_entry.text()
+        self.savepastcontacts()
         grid, opname = self.qrzlookup(self.callsign_entry.text())
         contact = (
             self.callsign_entry.text(),
@@ -1019,6 +1045,7 @@ if __name__ == "__main__":
     window.show()
     window.create_DB()
     window.readpreferences()
+    window.readpastcontacts()
     window.readCWmacros()
     window.qrzauth()
     window.logwindow()
