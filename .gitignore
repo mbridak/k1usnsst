@@ -5,3 +5,4 @@ __pycache__/
 *.db
 *.adi
 SST_Statistics.txt
+debug
