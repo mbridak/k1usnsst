@@ -6,3 +6,4 @@ __pycache__/
 *.adi
 SST_Statistics.txt
 debug
+.vscode/
