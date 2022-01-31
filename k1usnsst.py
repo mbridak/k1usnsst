@@ -4,6 +4,8 @@ Logger for K1USN SST
 """
 
 import logging
+
+# from typing import List
 import xmlrpc.client
 import sys
 import sqlite3
@@ -22,7 +24,7 @@ from bs4 import BeautifulSoup as bs
 import requests
 
 
-def relpath(filename: str):
+def relpath(filename: str) -> str:
     """
     Checks to see if program has been packaged with pyinstaller.
     If so base dir is in a temp folder.
@@ -34,7 +36,7 @@ def relpath(filename: str):
     return os.path.join(base_path, filename)
 
 
-def load_fonts_from_dir(directory):
+def load_fonts_from_dir(directory: str) -> set:
     """
     Well it loads fonts from a directory...
     """
@@ -227,8 +229,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.genLogButton.clicked.connect(self.generate_logs)
         self.band_selector.activated.connect(self.changeband)
         self.settings_gear.clicked.connect(self.settingspressed)
+        self.rigctrlsocket = None
         self.radiochecktimer = QtCore.QTimer()
-        self.radiochecktimer.timeout.connect(self.Radio)
+        self.radiochecktimer.timeout.connect(self.radio)
         self.radiochecktimer.start(1000)
         self.changeband()
         self.readpreferences()
@@ -263,7 +266,8 @@ class MainWindow(QtWidgets.QMainWindow):
         settingsdialog.exec()
         self.readpreferences()
 
-    def relpath(self, filename):
+    @staticmethod
+    def relpath(filename: str) -> str:
         """
         If the program is packaged with pyinstaller,
         this is needed since all files will be in a temp folder during execution.
@@ -296,40 +300,41 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.fkeys[fkey.strip()] = (buttonname.strip(), cwtext.strip())
                 except ValueError:
                     break
-        if "F1" in self.fkeys.keys():
+        keys = self.fkeys.keys()
+        if "F1" in keys:
             self.F1.setText(f"F1: {self.fkeys['F1'][0]}")
             self.F1.setToolTip(self.fkeys["F1"][1])
-        if "F2" in self.fkeys.keys():
+        if "F2" in keys:
             self.F2.setText(f"F2: {self.fkeys['F2'][0]}")
             self.F2.setToolTip(self.fkeys["F2"][1])
-        if "F3" in self.fkeys.keys():
+        if "F3" in keys:
             self.F3.setText(f"F3: {self.fkeys['F3'][0]}")
             self.F3.setToolTip(self.fkeys["F3"][1])
-        if "F4" in self.fkeys.keys():
+        if "F4" in keys:
             self.F4.setText(f"F4: {self.fkeys['F4'][0]}")
             self.F4.setToolTip(self.fkeys["F4"][1])
-        if "F5" in self.fkeys.keys():
+        if "F5" in keys:
             self.F5.setText(f"F5: {self.fkeys['F5'][0]}")
             self.F5.setToolTip(self.fkeys["F5"][1])
-        if "F6" in self.fkeys.keys():
+        if "F6" in keys:
             self.F6.setText(f"F6: {self.fkeys['F6'][0]}")
             self.F6.setToolTip(self.fkeys["F6"][1])
-        if "F7" in self.fkeys.keys():
+        if "F7" in keys:
             self.F7.setText(f"F7: {self.fkeys['F7'][0]}")
             self.F7.setToolTip(self.fkeys["F7"][1])
-        if "F8" in self.fkeys.keys():
+        if "F8" in keys:
             self.F8.setText(f"F8: {self.fkeys['F8'][0]}")
             self.F8.setToolTip(self.fkeys["F8"][1])
-        if "F9" in self.fkeys.keys():
+        if "F9" in keys:
             self.F9.setText(f"F9: {self.fkeys['F9'][0]}")
             self.F9.setToolTip(self.fkeys["F9"][1])
-        if "F10" in self.fkeys.keys():
+        if "F10" in keys:
             self.F10.setText(f"F10: {self.fkeys['F10'][0]}")
             self.F10.setToolTip(self.fkeys["F10"][1])
-        if "F11" in self.fkeys.keys():
+        if "F11" in keys:
             self.F11.setText(f"F11: {self.fkeys['F11'][0]}")
             self.F11.setToolTip(self.fkeys["F11"][1])
-        if "F12" in self.fkeys.keys():
+        if "F12" in keys:
             self.F12.setText(f"F12: {self.fkeys['F12'][0]}")
             self.F12.setToolTip(self.fkeys["F12"][1])
 
@@ -484,14 +489,17 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.rigonline = False
 
-    def Radio(self):
+    def radio(self) -> None:
         """
         Check for connection to rigctld. if it's there, poll it for radio status.
         """
         self.check_radio()
         self.poll_radio()
 
-    def process_macro(self, macro):
+    def process_macro(self, macro: str) -> str:
+        """
+        Does a rudimentary string substitution for the fkey cw macros.
+        """
         macro = macro.upper()
         macro = macro.replace("{MYEXCHANGE}", self.myexchangeEntry.text())
         macro = macro.replace("{MYCALL}", self.mycallEntry.text())
@@ -510,12 +518,14 @@ class MainWindow(QtWidgets.QMainWindow):
         macro = macro.replace("{HISSTATE}", hisstate)
         return macro
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event) -> None:
         """
+        Overrides the QtWidgets keyPressEvent
         Process pressing TAB, ESC, F1-F12
         """
         if event.key() == Qt.Key_Escape:
             self.clearinputs()
+            return
         if event.key() == Qt.Key_Tab:
             if self.exchange_entry.hasFocus():
                 logging.info("From exchange")
@@ -531,26 +541,37 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
         if event.key() == Qt.Key_F1:
             self.sendf1()
+            return
         if event.key() == Qt.Key_F2:
             self.sendf2()
+            return
         if event.key() == Qt.Key_F3:
             self.sendf3()
+            return
         if event.key() == Qt.Key_F4:
             self.sendf4()
+            return
         if event.key() == Qt.Key_F5:
             self.sendf5()
+            return
         if event.key() == Qt.Key_F6:
             self.sendf6()
+            return
         if event.key() == Qt.Key_F7:
             self.sendf7()
+            return
         if event.key() == Qt.Key_F8:
             self.sendf8()
+            return
         if event.key() == Qt.Key_F9:
             self.sendf9()
+            return
         if event.key() == Qt.Key_F10:
             self.sendf10()
+            return
         if event.key() == Qt.Key_F11:
             self.sendf11()
+            return
         if event.key() == Qt.Key_F12:
             self.sendf12()
 
@@ -684,6 +705,9 @@ class MainWindow(QtWidgets.QMainWindow):
         app.processEvents()
 
     def changemycall(self) -> None:
+        """
+        Cleans mycallEntry field and saves it to preferences.
+        """
         text = self.mycallEntry.text()
         if len(text):
             if text[-1] == " ":
@@ -701,6 +725,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.writepreferences()
 
     def changemyexchange(self) -> None:
+        """
+        Cleans myexchangeEntry field and saves it to preferences.
+        """
         text = self.myexchangeEntry.text()
         if len(text):
             cleaned = "".join(ch for ch in text if ch.isalpha() or ch == " ").upper()
@@ -753,7 +780,8 @@ class MainWindow(QtWidgets.QMainWindow):
             with sqlite3.connect(self.database) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    f"select callsign, name, sandpdx, band from contacts where callsign like '{acall}' order by band"
+                    f"select callsign, name, sandpdx, band from contacts "
+                    f"where callsign like '{acall}' order by band"
                 )
                 log = cursor.fetchall()
         except sqlite3.Error as exception:
@@ -773,7 +801,12 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             with sqlite3.connect(self.database) as conn:
                 cursor = conn.cursor()
-                sql_table = """ CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY, callsign text NOT NULL, name text NOT NULL, sandpdx text NOT NULL, date_time text NOT NULL, frequency text NOT NULL, band text NOT NULL, grid text NOT NULL, opname text NOT NULL); """
+                sql_table = (
+                    " CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY, "
+                    "callsign text NOT NULL, name text NOT NULL, sandpdx text NOT NULL, "
+                    "date_time text NOT NULL, frequency text NOT NULL, band text NOT NULL, "
+                    "grid text NOT NULL, opname text NOT NULL); "
+                )
                 cursor.execute(sql_table)
         except sqlite3.Error as exception:
             logging.critical("create_db: %s", exception)
@@ -801,7 +834,8 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.flrig = True
                         self.userigctl = False
                         self.server = xmlrpc.client.ServerProxy(
-                            f"http://{self.settings_dict['rigcontrolip']}:{self.settings_dict['rigcontrolport']}"
+                            f"http://{self.settings_dict['rigcontrolip']}:"
+                            f"{self.settings_dict['rigcontrolport']}"
                         )
             else:
                 with open(
@@ -836,7 +870,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pastcontacts[self.callsign_entry.text()] = self.exchange_entry.text()
         self.savepastcontacts()
         if self.settings_dict["useqrz"]:
-            grid, opname, nickname, error = self.qrz.lookup(self.callsign_entry.text())
+            grid, opname, _, error = self.qrz.lookup(self.callsign_entry.text())
         if error:
             logging.info("log_contact: lookup error %s", error)
         if not grid:
@@ -854,7 +888,10 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         try:
             with sqlite3.connect(self.database) as conn:
-                sql = "INSERT INTO contacts(callsign, name, sandpdx, date_time, frequency, band, grid, opname) VALUES(?,?,?,datetime('now'),?,?,?,?)"
+                sql = (
+                    "INSERT INTO contacts(callsign, name, sandpdx, date_time, "
+                    "frequency, band, grid, opname) VALUES(?,?,?,datetime('now'),?,?,?,?)"
+                )
                 logging.info("log_contact: %s\n%s", sql, contact)
                 cur = conn.cursor()
                 cur.execute(sql, contact)
@@ -864,109 +901,149 @@ class MainWindow(QtWidgets.QMainWindow):
         self.logwindow()
         self.clearinputs()
 
-    def logwindow(self):
+    def logwindow(self) -> None:
+        """
+        Populates the list of contacts stored in the database.
+        """
         logging.info("loqwindow:")
         self.listWidget.clear()
         try:
             with sqlite3.connect(self.database) as conn:
-                c = conn.cursor()
-                c.execute("select * from contacts order by date_time desc")
-                log = c.fetchall()
+                cursor = conn.cursor()
+                cursor.execute("select * from contacts order by date_time desc")
+                log = cursor.fetchall()
         except sqlite3.Error as exception:
             logging.critical("logwindow: %s", exception)
-        for x in log:
-            logid, hiscall, hisname, sandpdx, datetime, frequency, band, _, _ = x
-            logline = f"{str(logid).rjust(3,'0')} {hiscall.ljust(11)} {hisname.ljust(12)} {sandpdx} {datetime} {str(band).rjust(3)}"
+        for contact in log:
+            logid, hiscall, hisname, sandpdx, the_date_and_time, _, band, _, _ = contact
+            logline = (
+                f"{str(logid).rjust(3,'0')} {hiscall.ljust(11)} "
+                f"{hisname.ljust(12)} {sandpdx} {the_date_and_time} {str(band).rjust(3)}"
+            )
             self.listWidget.addItem(logline)
         self.calcscore()
 
-    def qsoclicked(self):
+    def qsoclicked(self) -> None:
         """
         Gets the line of the log clicked on, and passes that line to the edit dialog.
         """
         logging.info("qsoclicked:")
         item = self.listWidget.currentItem()
         linetopass = item.text()
-        dialog = edit_qso_dialog(self)
+        dialog = EditQsoDialog(self)
         dialog.setup(linetopass, self.database)
         dialog.change.lineChanged.connect(self.qsoedited)
         dialog.open()
 
-    def qsoedited(self):
+    def qsoedited(self) -> None:
         """
         Perform functions after QSO edited or deleted.
         """
         self.logwindow()
 
-    def adif(self):
+    def adif(self) -> None:
+        """
+        Generates adif log for importing.
+        """
         logname = "SST.adi"
         logging.info("Saving ADIF to: %s\n", logname)
         try:
             with sqlite3.connect(self.database) as conn:
-                c = conn.cursor()
-                c.execute("select * from contacts order by date_time ASC")
-                log = c.fetchall()
+                cursor = conn.cursor()
+                cursor.execute("select * from contacts order by date_time ASC")
+                log = cursor.fetchall()
         except sqlite3.Error as exception:
             logging.critical("adif: %s", exception)
             self.dupe_indicator.setText("Error!")
             return
         grid = False
         opname = False
-        with open(logname, "w", encoding="ascii") as f:
-            print("<ADIF_VER:5>2.2.0", end="\r\n", file=f)
-            print("<EOH>", end="\r\n", file=f)
+        with open(logname, "w", encoding="ascii") as file_descriptor:
+            print("<ADIF_VER:5>2.2.0", end="\r\n", file=file_descriptor)
+            print("<EOH>", end="\r\n", file=file_descriptor)
             mode = "CW"
-            for x in log:
+            for contact in log:
                 (
                     _,
                     hiscall,
                     hisname,
                     sandpdx,
-                    datetime,
+                    the_date_and_time,
                     frequency,
                     band,
                     grid,
                     opname,
-                ) = x
-                loggeddate = datetime[:10]
-                loggedtime = datetime[11:13] + datetime[14:16]
+                ) = contact
+                loggeddate = the_date_and_time[:10]
+                loggedtime = the_date_and_time[11:13] + the_date_and_time[14:16]
                 print(
-                    f"<QSO_DATE:{len(''.join(loggeddate.split('-')))}:d>{''.join(loggeddate.split('-'))}",
+                    f"<QSO_DATE:{len(''.join(loggeddate.split('-')))}:d>"
+                    f"{''.join(loggeddate.split('-'))}",
                     end="\r\n",
-                    file=f,
+                    file=file_descriptor,
                 )
-                print(f"<TIME_ON:{len(loggedtime)}>{loggedtime}", end="\r\n", file=f)
-                print(f"<CALL:{len(hiscall)}>{hiscall}", end="\r\n", file=f)
-                print(f"<MODE:{len(mode)}>{mode}", end="\r\n", file=f)
-                print(f"<BAND:{len(band + 'M')}>{band + 'M'}", end="\r\n", file=f)
+                print(
+                    f"<TIME_ON:{len(loggedtime)}>{loggedtime}",
+                    end="\r\n",
+                    file=file_descriptor,
+                )
+                print(
+                    f"<CALL:{len(hiscall)}>{hiscall}", end="\r\n", file=file_descriptor
+                )
+                print(f"<MODE:{len(mode)}>{mode}", end="\r\n", file=file_descriptor)
+                print(
+                    f"<BAND:{len(band + 'M')}>{band + 'M'}",
+                    end="\r\n",
+                    file=file_descriptor,
+                )
                 freq = str(int(frequency) / 1000000)
-                print(f"<FREQ:{len(freq)}>{freq}", end="\r\n", file=f)
-                print("<RST_SENT:3>599", end="\r\n", file=f)
-                print("<RST_RCVD:3>599", end="\r\n", file=f)
+                print(f"<FREQ:{len(freq)}>{freq}", end="\r\n", file=file_descriptor)
+                print("<RST_SENT:3>599", end="\r\n", file=file_descriptor)
+                print("<RST_RCVD:3>599", end="\r\n", file=file_descriptor)
                 print(
                     f"<STX_STRING:{len(self.myexchangeEntry.text())}>{self.myexchangeEntry.text()}",
                     end="\r\n",
-                    file=f,
+                    file=file_descriptor,
                 )
                 hisexchange = f"{hisname} {sandpdx}"
                 print(
-                    f"<SRX_STRING:{len(hisexchange)}>{hisexchange}", end="\r\n", file=f
+                    f"<SRX_STRING:{len(hisexchange)}>{hisexchange}",
+                    end="\r\n",
+                    file=file_descriptor,
                 )
                 state = sandpdx
                 if state:
-                    print(f"<STATE:{len(state)}>{state}", end="\r\n", file=f)
+                    print(
+                        f"<STATE:{len(state)}>{state}", end="\r\n", file=file_descriptor
+                    )
                 if len(grid) > 1:
-                    print(f"<GRIDSQUARE:{len(grid)}>{grid}", end="\r\n", file=f)
+                    print(
+                        f"<GRIDSQUARE:{len(grid)}>{grid}",
+                        end="\r\n",
+                        file=file_descriptor,
+                    )
                 if len(opname) > 1:
-                    print(f"<NAME:{len(opname)}>{opname}", end="\r\n", file=f)
+                    print(
+                        f"<NAME:{len(opname)}>{opname}",
+                        end="\r\n",
+                        file=file_descriptor,
+                    )
                 comment = "K1USN SST"
-                print(f"<COMMENT:{len(comment)}>{comment}", end="\r\n", file=f)
+                print(
+                    f"<COMMENT:{len(comment)}>{comment}",
+                    end="\r\n",
+                    file=file_descriptor,
+                )
                 contest = "K1USN-SST"
-                print(f"<CONTEST_ID:{len(contest)}>{contest}", end="\r\n", file=f)
-                print("<EOR>", end="\r\n", file=f)
+                print(
+                    f"<CONTEST_ID:{len(contest)}>{contest}",
+                    end="\r\n",
+                    file=file_descriptor,
+                )
+                print("<EOR>", end="\r\n", file=file_descriptor)
         self.dupe_indicator.setText(f"{logname} saved.")
 
-    def calcscore(self):
+    def calcscore(self) -> None:
         """
         determine the amount od QSO's, S/P per band, DX per band.
         """
@@ -974,27 +1051,36 @@ class MainWindow(QtWidgets.QMainWindow):
         total_qso = 0
         total_mults = 0
         total_score = 0
-        with open("SST_Statistics.txt", "w", encoding="ascii") as f:
-            print("", file=f)
+        with open("SST_Statistics.txt", "w", encoding="ascii") as file_descriptor:
+            print("", file=file_descriptor)
         bandsworked = self.getbands()
         for band in bandsworked:
             try:
                 with sqlite3.connect(self.database) as conn:
-                    c = conn.cursor()
+                    cursor = conn.cursor()
                     query = f"select count(*) from contacts where band='{band}'"
-                    c.execute(query)
-                    qso = c.fetchone()
-                    query = f"select count(distinct sandpdx) from contacts where band='{band}' and sandpdx <> 'DX'"
-                    c.execute(query)
-                    sandp = c.fetchone()
-                    query = f"select count(*) from contacts where band='{band}' and sandpdx = 'DX'"
-                    c.execute(query)
-                    dx = c.fetchone()
-                    with open("SST_Statistics.txt", "a", encoding="ascii") as f:
+                    cursor.execute(query)
+                    qso = cursor.fetchone()
+                    query = (
+                        "select count(distinct sandpdx) from contacts "
+                        f"where band='{band}' and sandpdx <> 'DX'"
+                    )
+                    cursor.execute(query)
+                    sandp = cursor.fetchone()
+                    query = (
+                        "select count(*) from contacts "
+                        f"where band='{band}' and sandpdx = 'DX'"
+                    )
+                    cursor.execute(query)
+                    dx = cursor.fetchone()
+                    with open(
+                        "SST_Statistics.txt", "a", encoding="ascii"
+                    ) as file_descriptor:
                         print(
-                            f"band:{band} QSOs:{qso[0]} state and province:{sandp[0]} dx:{dx[0]} mult:{sandp[0]+dx[0]}",
+                            f"band:{band} QSOs:{qso[0]} state and "
+                            f"province:{sandp[0]} dx:{dx[0]} mult:{sandp[0]+dx[0]}",
                             end="\r\n",
-                            file=f,
+                            file=file_descriptor,
                         )
                     logging.info(
                         "score: band:%s q:%s s&p:%s dx:%s", band, qso, sandp, dx
@@ -1007,36 +1093,42 @@ class MainWindow(QtWidgets.QMainWindow):
         self.Total_CW.setText(str(total_qso))
         self.Total_Mults.setText(str(total_mults))
         self.Total_Score.setText(str(total_score))
-        with open("SST_Statistics.txt", "a", encoding="ascii") as f:
-            print(f"Total QSO: {total_qso}", end="\r\n", file=f)
-            print(f"Total Mults: {total_mults}", end="\r\n", file=f)
-            print(f"Total Score: {total_score}", end="\r\n", file=f)
+        with open("SST_Statistics.txt", "a", encoding="ascii") as file_descriptor:
+            print(f"Total QSO: {total_qso}", end="\r\n", file=file_descriptor)
+            print(f"Total Mults: {total_mults}", end="\r\n", file=file_descriptor)
+            print(f"Total Score: {total_score}", end="\r\n", file=file_descriptor)
 
-    def getbands(self):
+    def getbands(self) -> list:
         """
         Returns a list of bands worked, and an empty list if none worked.
         """
         bandlist = []
         try:
             with sqlite3.connect(self.database) as conn:
-                c = conn.cursor()
-                c.execute("select DISTINCT band from contacts")
-                x = c.fetchall()
+                cursor = conn.cursor()
+                cursor.execute("select DISTINCT band from contacts")
+                returned_query = cursor.fetchall()
         except sqlite3.Error as exception:
             logging.critical("getbands: %s", exception)
             return []
-        if x:
-            for count in x:
+        if returned_query:
+            for count in returned_query:
                 bandlist.append(count[0])
             return bandlist
         return []
 
-    def generate_logs(self):
+    def generate_logs(self) -> None:
+        """
+        When called, calculates the score and generates an adif file.
+        """
         self.calcscore()
         self.adif()
 
 
-class edit_qso_dialog(QtWidgets.QDialog):
+class EditQsoDialog(QtWidgets.QDialog):
+    """
+    Edits the selected contact from the logwindow.
+    """
 
     theitem = ""
     database = ""
@@ -1048,8 +1140,11 @@ class edit_qso_dialog(QtWidgets.QDialog):
         self.buttonBox.accepted.connect(self.save_changes)
         self.change = QSOEdit()
 
-    def setup(self, linetopass, thedatabase):
-        logging.info("edit_qso_dialog.setup: %s : %s", linetopass, linetopass.split())
+    def setup(self, linetopass: str, thedatabase: str) -> None:
+        """
+        This, well.. sets up the variables
+        """
+        logging.info("EditQsoDialog.setup: %s : %s", linetopass, linetopass.split())
         self.database = thedatabase
         (
             self.theitem,
@@ -1068,25 +1163,43 @@ class edit_qso_dialog(QtWidgets.QDialog):
         now = QtCore.QDateTime.fromString(date_time, "yyyy-MM-dd hh:mm:ss")
         self.editDateTime.setDateTime(now)
 
-    def relpath(self, filename):
-        try:
-            base_path = sys._MEIPASS  # pylint: disable=no-member
-        except:
+    @staticmethod
+    def relpath(filename: str) -> str:
+        """
+        If the program is packaged with pyinstaller,
+        this is needed since all files will be in a temp folder during execution.
+        """
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            base_path = getattr(sys, "_MEIPASS")
+        else:
             base_path = os.path.abspath(".")
         return os.path.join(base_path, filename)
 
-    def save_changes(self):
+    def save_changes(self) -> None:
+        """
+        Saves changes to contact back to the db.
+        """
         try:
             with sqlite3.connect(self.database) as conn:
-                sql = f"update contacts set callsign = '{self.editCallsign.text().upper()}', name = '{self.editExchange.text().upper().split()[0]}', sandpdx = '{self.editExchange.text().upper().split()[1]}', date_time = '{self.editDateTime.text()}', band = '{self.editBand.currentText()}'  where id={self.theitem}"
+                sql = (
+                    f"update contacts set callsign = '{self.editCallsign.text().upper()}', "
+                    f"name = '{self.editExchange.text().upper().split()[0]}', "
+                    f"sandpdx = '{self.editExchange.text().upper().split()[1]}', "
+                    f"date_time = '{self.editDateTime.text()}', "
+                    f"band = '{self.editBand.currentText()}' "
+                    f"where id={self.theitem}"
+                )
                 cur = conn.cursor()
                 cur.execute(sql)
                 conn.commit()
         except sqlite3.Error as exception:
-            logging.critical("edit_qso_dialog.save_changes: %s", exception)
+            logging.critical("EditQsoDialog.save_changes: %s", exception)
         self.change.lineChanged.emit()
 
     def delete_contact(self):
+        """
+        Deletes the contact currently being edited.
+        """
         try:
             with sqlite3.connect(self.database) as conn:
                 sql = f"delete from contacts where id={self.theitem}"
@@ -1094,7 +1207,7 @@ class edit_qso_dialog(QtWidgets.QDialog):
                 cur.execute(sql)
                 conn.commit()
         except sqlite3.Error as exception:
-            logging.critical("edit_qso_dialog.delete_contact: %s", exception)
+            logging.critical("EditQsoDialog.delete_contact: %s", exception)
         self.change.lineChanged.emit()
         self.close()
 
@@ -1109,12 +1222,18 @@ class Settings(QtWidgets.QDialog):
         super().__init__(parent)
         uic.loadUi(self.relpath("settings.ui"), self)
         self.buttonBox.accepted.connect(self.save_changes)
+        self.settings_dict = None
 
     def setup(self):
+        """
+        Reads in existing settings.
+        """
         try:
             home = os.path.expanduser("~")
-            with open(home + "/.k1usnsst.json", "rt") as f:
-                self.settings_dict = loads(f.read())
+            with open(
+                home + "/.k1usnsst.json", "rt", encoding="utf-8"
+            ) as file_descriptor:
+                self.settings_dict = loads(file_descriptor.read())
                 self.qrzname_field.setText(self.settings_dict["qrzusername"])
                 self.qrzpass_field.setText(self.settings_dict["qrzpassword"])
                 self.qrzurl_field.setText(self.settings_dict["qrzurl"])
@@ -1126,17 +1245,25 @@ class Settings(QtWidgets.QDialog):
                 if self.settings_dict["userigcontrol"] == 2:
                     self.radioButton_flrig.setChecked(True)
                 self.usehamdb_checkBox.setChecked(bool(self.settings_dict["usehamdb"]))
-        except Error as exception:
+        except IOError as exception:
             logging.critical("Settings.setup: %s", exception)
 
-    def relpath(self, filename):
-        try:
-            base_path = sys._MEIPASS  # pylint: disable=no-member
-        except:
+    @staticmethod
+    def relpath(filename: str) -> str:
+        """
+        If the program is packaged with pyinstaller,
+        this is needed since all files will be in a temp folder during execution.
+        """
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            base_path = getattr(sys, "_MEIPASS")
+        else:
             base_path = os.path.abspath(".")
         return os.path.join(base_path, filename)
 
-    def save_changes(self):
+    def save_changes(self) -> None:
+        """
+        Saves settings to the settings file.
+        """
         try:
             self.settings_dict["userigcontrol"] = 0
             if self.radioButton_rigctld.isChecked():
@@ -1152,8 +1279,10 @@ class Settings(QtWidgets.QDialog):
             self.settings_dict["usehamdb"] = int(self.usehamdb_checkBox.isChecked())
             logging.info(self.settings_dict)
             home = os.path.expanduser("~")
-            with open(home + "/.k1usnsst.json", "wt") as f:
-                f.write(dumps(self.settings_dict))
+            with open(
+                home + "/.k1usnsst.json", "wt", encoding="utf-8"
+            ) as file_descriptor:
+                file_descriptor.write(dumps(self.settings_dict))
         except Error as exception:
             logging.critical("Settings.save_changes: %s", exception)
 
