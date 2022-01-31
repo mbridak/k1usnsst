@@ -78,7 +78,7 @@ class QRZlookup:
         Error messages returned by QRZ will be in class variable 'error'
         Other messages returned will be in class variable 'message'
         """
-        logging.debug("hamfunctions.getsession:")
+        logging.info("hamfunctions.getsession:")
         self.error = False
         self.message = False
         self.session = False
@@ -94,11 +94,11 @@ class QRZlookup:
                 self.error = root.session.error.text
             if root.session.find("message"):
                 self.message = root.session.message.text
-            logging.debug(
+            logging.info(
                 "hamfunctions.getsession:%s%s%s", self.session, self.error, self.message
             )
         except requests.exceptions.RequestException as exception:
-            logging.debug("hamfunctions.getsession: %s", exception)
+            logging.info("hamfunctions.getsession: %s", exception)
             self.session = False
             self.error = f"{exception}"
 
@@ -106,7 +106,7 @@ class QRZlookup:
         """
         Lookup a call on QRZ
         """
-        logging.debug("hamfunctions.lookup: %s", call)
+        logging.info("hamfunctions.lookup: %s", call)
         grid = False
         name = False
         error_text = False
@@ -116,7 +116,7 @@ class QRZlookup:
             query_result = requests.get(self.qrzurl, params=payload, timeout=3.0)
             root = bs(query_result.text, "html.parser")
             if not root.session.key:  # key expired get a new one
-                logging.debug("hamfunctions.lookup: no key, getting new one.")
+                logging.info("hamfunctions.lookup: no key, getting new one.")
                 self.getsession()
                 if self.session:
                     payload = {"s": self.session, "callsign": call}
@@ -131,7 +131,7 @@ class QRZlookup:
         Returns gridsquare and name for a callsign looked up by qrz or hamdb.
         Or False for both if none found or error.
         """
-        logging.debug("hamfunctions.parse_lookup:")
+        logging.info("hamfunctions.parse_lookup:")
         grid = False
         name = False
         error_text = False
@@ -153,7 +153,7 @@ class QRZlookup:
                         name = f"{name} {root.find('name').string}"
                 if root.callsign.find("nickname"):
                     nickname = root.callsign.nickname.text
-        logging.debug(
+        logging.info(
             "hamfunctions.parse_lookup: %s %s %s %s", grid, name, nickname, error_text
         )
         return grid, name, nickname, error_text
@@ -205,7 +205,7 @@ class MainWindow(QtWidgets.QMainWindow):
     pastcontacts = {}
 
     def __init__(self, *args, **kwargs):
-        logging.debug("MainWindow: __init__")
+        logging.info("MainWindow: __init__")
         super().__init__(*args, **kwargs)
         uic.loadUi(self.relpath("main.ui"), self)
         self.listWidget.itemDoubleClicked.connect(self.qsoclicked)
@@ -216,7 +216,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.callsign_entry.editingFinished.connect(self.dup_check)
         self.exchange_entry.textEdited.connect(self.exchangetest)
         self.exchange_entry.returnPressed.connect(self.log_contact)
-        self.radio_icon.setPixmap(QtGui.QPixmap(self.relpath("icon/radio_grey.png")))
+        self.radio_grey = QtGui.QPixmap(self.relpath("icon/radio_grey.png"))
+        self.radio_green = QtGui.QPixmap(self.relpath("icon/radio_green.png"))
+        self.radio_red = QtGui.QPixmap(self.relpath("icon/radio_red.png"))
+        self.radio_icon.setPixmap(self.radio_grey)
         self.QRZ_icon.setStyleSheet("color: rgb(136, 138, 133);")
         self.genLogButton.clicked.connect(self.generate_logs)
         self.band_selector.activated.connect(self.changeband)
@@ -247,7 +250,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         When the gear icon is clicked, this is called
         """
-        logging.debug("MainWindow: settingspressed")
+        logging.info("MainWindow: settingspressed")
         settingsdialog = Settings()
         settingsdialog.setup()
         settingsdialog.exec()
@@ -262,7 +265,7 @@ class MainWindow(QtWidgets.QMainWindow):
             base_path = getattr(sys, "_MEIPASS")
         else:
             base_path = os.path.abspath(".")
-        logging.debug("MainWindow: relpath: %s%s", base_path, filename)
+        logging.info("MainWindow: relpath: %s%s", base_path, filename)
         return os.path.join(base_path, filename)
 
     def read_cw_macros(self):
@@ -277,7 +280,7 @@ class MainWindow(QtWidgets.QMainWindow):
             and hasattr(sys, "_MEIPASS")
             and not Path("./cwmacros_sst.txt").exists()
         ):
-            logging.debug("read_cw_macros: copying default macro file.")
+            logging.info("read_cw_macros: copying default macro file.")
             copyfile(relpath("cwmacros_sst.txt"), "./cwmacros_sst.txt")
         with open("./cwmacros_sst.txt", "r", encoding="utf-8") as cw_macros:
             for line in cw_macros:
@@ -362,10 +365,10 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         try:
             socket.create_connection(("1.1.1.1", 53))
-            logging.debug("MainWindow: has_internet - True")
+            logging.info("MainWindow: has_internet - True")
             return True
         except OSError as exception:
-            logging.debug("MainWindow: has_internet: %s", exception)
+            logging.info("MainWindow: has_internet: %s", exception)
         return False
 
     def getband(self, freq: str) -> str:
@@ -374,7 +377,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Returns a (string) band.
         Returns a "0" if frequency is out of band.
         """
-        logging.debug("MainWindow: getband: %s", freq)
+        logging.info("MainWindow: getband: %s", freq)
         if freq.isnumeric():
             frequency = int(float(freq))
             if frequency > 1800000 and frequency < 2000000:
@@ -426,25 +429,19 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.flrig:
             try:
                 newfreq = self.server.rig.get_vfo()
-                self.radio_icon.setPixmap(
-                    QtGui.QPixmap(self.relpath("icon/radio_green.png"))
-                )
+                self.radio_icon.setPixmap(self.radio_green)
                 if newfreq != self.oldfreq:
                     self.oldfreq = newfreq
                     self.setband(str(self.getband(newfreq)))
             except socket.error as exception:
-                self.radio_icon.setPixmap(
-                    QtGui.QPixmap(self.relpath("icon/radio_red.png"))
-                )
+                self.radio_icon.setPixmap(self.radio_red)
                 logging.warning("poll_radio: flrig: %s", exception)
             return
         if self.rigonline:
             self.rigctrlsocket.settimeout(0.5)
             self.rigctrlsocket.send(b"f")
             newfreq = self.rigctrlsocket.recv(1024).decode().strip()
-            self.radio_icon.setPixmap(
-                QtGui.QPixmap(self.relpath("icon/radio_green.png"))
-            )
+            self.radio_icon.setPixmap(self.radio_green)
             self.rigctrlsocket.shutdown(socket.SHUT_RDWR)
             self.rigctrlsocket.close()
             if newfreq != self.oldfreq:
@@ -456,15 +453,13 @@ class MainWindow(QtWidgets.QMainWindow):
         Checks to see if rigctld daemon is running.
         """
         if not (self.flrig or self.userigctl):
-            self.radio_icon.setPixmap(
-                QtGui.QPixmap(self.relpath("icon/radio_grey.png"))
-            )
+            self.radio_icon.setPixmap(self.radio_grey)
         if self.userigctl:
             self.rigctrlsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.rigctrlsocket.settimeout(0.1)
             self.rigonline = True
             try:
-                logging.debug(
+                logging.info(
                     "check_radio: %s %s",
                     self.settings_dict["rigcontrolip"],
                     self.settings_dict["rigcontrolport"],
@@ -477,10 +472,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
             except socket.error:
                 self.rigonline = False
-                logging.debug("check_radio: Rig Offline.")
-                self.radio_icon.setPixmap(
-                    QtGui.QPixmap(self.relpath("icon/radio_red.png"))
-                )
+                logging.info("check_radio: Rig Offline.")
+                self.radio_icon.setPixmap(self.radio_red)
         else:
             self.rigonline = False
 
@@ -515,13 +508,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clearinputs()
         if event.key() == Qt.Key_Tab:
             if self.exchange_entry.hasFocus():
-                logging.debug("From exchange")
+                logging.info("From exchange")
                 self.callsign_entry.setFocus()
                 self.callsign_entry.deselect()
                 self.callsign_entry.end(False)
                 return
             if self.callsign_entry.hasFocus():
-                logging.debug("From callsign")
+                logging.info("From callsign")
                 self.exchange_entry.setFocus()
                 self.exchange_entry.deselect()
                 self.exchange_entry.end(False)
@@ -555,14 +548,14 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Sends string to k1el keyer.
         """
-        logging.debug("sendcw: %s", texttosend)
+        logging.info("sendcw: %s", texttosend)
         with ServerProxy(self.keyerserver) as proxy:
             try:
                 proxy.k1elsendstring(texttosend)
             except Error as exception:
-                logging.debug("%s, xmlrpc error: %s", self.keyerserver, exception)
+                logging.info("%s, xmlrpc error: %s", self.keyerserver, exception)
             except ConnectionRefusedError:
-                logging.debug("%s, xmlrpc Connection Refused", self.keyerserver)
+                logging.info("%s, xmlrpc Connection Refused", self.keyerserver)
 
     def sendf1(self) -> None:
         """
@@ -779,7 +772,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Reads preferences from json file.
         """
-        logging.debug("readpreferences:")
+        logging.info("readpreferences:")
         try:
             home = os.path.expanduser("~")
             if os.path.exists(home + "/.k1usnsst.json"):
@@ -812,7 +805,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Write preferences to json file.
         """
-        logging.debug("writepreferences:")
+        logging.info("writepreferences:")
         home = os.path.expanduser("~")
         with open(home + "/.k1usnsst.json", "wt", encoding="utf-8") as file_descriptor:
             file_descriptor.write(dumps(self.settings_dict))
@@ -821,7 +814,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Log Contact
         """
-        logging.debug("log_contact:")
+        logging.info("log_contact:")
         grid = False
         opname = False
         error = False
@@ -835,7 +828,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.settings_dict["useqrz"]:
             grid, opname, nickname, error = self.qrz.lookup(self.callsign_entry.text())
         if error:
-            logging.debug("log_contact: lookup error %s", error)
+            logging.info("log_contact: lookup error %s", error)
         if not grid:
             grid = ""
         if not opname:
@@ -852,7 +845,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             with sqlite3.connect(self.database) as conn:
                 sql = "INSERT INTO contacts(callsign, name, sandpdx, date_time, frequency, band, grid, opname) VALUES(?,?,?,datetime('now'),?,?,?,?)"
-                logging.debug("log_contact: %s\n%s", sql, contact)
+                logging.info("log_contact: %s\n%s", sql, contact)
                 cur = conn.cursor()
                 cur.execute(sql, contact)
                 conn.commit()
@@ -862,7 +855,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.clearinputs()
 
     def logwindow(self):
-        logging.debug("loqwindow:")
+        logging.info("loqwindow:")
         self.listWidget.clear()
         try:
             with sqlite3.connect(self.database) as conn:
@@ -881,7 +874,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Gets the line of the log clicked on, and passes that line to the edit dialog.
         """
-        logging.debug("qsoclicked:")
+        logging.info("qsoclicked:")
         item = self.listWidget.currentItem()
         linetopass = item.text()
         dialog = edit_qso_dialog(self)
@@ -896,12 +889,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.logwindow()
 
     def qrzlookup(self, call):
-        logging.debug("qrzlookup: %s", call)
+        logging.info("qrzlookup: %s", call)
         grid = False
         name = False
         if self.has_internet():
             grid, name, nickname, error = self.qrz.lookup(call)
-            logging.debug("qrzlookup: %s %s %s %s", grid, name, nickname, error)
+            logging.info("qrzlookup: %s %s %s %s", grid, name, nickname, error)
         return grid, name
 
     def adif(self):
@@ -976,7 +969,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         determine the amount od QSO's, S/P per band, DX per band.
         """
-        logging.debug("calcscore()")
+        logging.info("calcscore()")
         total_qso = 0
         total_mults = 0
         total_score = 0
@@ -1002,7 +995,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             end="\r\n",
                             file=f,
                         )
-                    logging.debug(
+                    logging.info(
                         "score: band:%s q:%s s&p:%s dx:%s", band, qso, sandp, dx
                     )
             except sqlite3.Error as exception:
@@ -1055,7 +1048,7 @@ class edit_qso_dialog(QtWidgets.QDialog):
         self.change = QSOEdit()
 
     def setup(self, linetopass, thedatabase):
-        logging.debug("edit_qso_dialog.setup: %s : %s", linetopass, linetopass.split())
+        logging.info("edit_qso_dialog.setup: %s : %s", linetopass, linetopass.split())
         self.database = thedatabase
         (
             self.theitem,
@@ -1166,7 +1159,7 @@ class Settings(QtWidgets.QDialog):
 
 if __name__ == "__main__":
     if Path("./debug").exists():
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.WARNING)
     app = QtWidgets.QApplication(sys.argv)
