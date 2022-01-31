@@ -78,7 +78,7 @@ class QRZlookup:
         Error messages returned by QRZ will be in class variable 'error'
         Other messages returned will be in class variable 'message'
         """
-        logging.info("hamfunctions.getsession:")
+        logging.info("QRZlookup-getsession:")
         self.error = False
         self.message = False
         self.session = False
@@ -95,10 +95,13 @@ class QRZlookup:
             if root.session.find("message"):
                 self.message = root.session.message.text
             logging.info(
-                "hamfunctions.getsession:%s%s%s", self.session, self.error, self.message
+                "QRZlookup-getsession: key:%s error:%s message:%s",
+                self.session,
+                self.error,
+                self.message,
             )
         except requests.exceptions.RequestException as exception:
-            logging.info("hamfunctions.getsession: %s", exception)
+            logging.info("QRZlookup-getsession: %s", exception)
             self.session = False
             self.error = f"{exception}"
 
@@ -106,7 +109,7 @@ class QRZlookup:
         """
         Lookup a call on QRZ
         """
-        logging.info("hamfunctions.lookup: %s", call)
+        logging.info("QRZlookup-lookup: %s", call)
         grid = False
         name = False
         error_text = False
@@ -116,7 +119,7 @@ class QRZlookup:
             query_result = requests.get(self.qrzurl, params=payload, timeout=3.0)
             root = bs(query_result.text, "html.parser")
             if not root.session.key:  # key expired get a new one
-                logging.info("hamfunctions.lookup: no key, getting new one.")
+                logging.info("QRZlookup-lookup: no key, getting new one.")
                 self.getsession()
                 if self.session:
                     payload = {"s": self.session, "callsign": call}
@@ -131,7 +134,7 @@ class QRZlookup:
         Returns gridsquare and name for a callsign looked up by qrz or hamdb.
         Or False for both if none found or error.
         """
-        logging.info("hamfunctions.parse_lookup:")
+        logging.info("QRZlookup-parse_lookup:")
         grid = False
         name = False
         error_text = False
@@ -154,7 +157,7 @@ class QRZlookup:
                 if root.callsign.find("nickname"):
                     nickname = root.callsign.nickname.text
         logging.info(
-            "hamfunctions.parse_lookup: %s %s %s %s", grid, name, nickname, error_text
+            "QRZlookup-parse_lookup: %s %s %s %s", grid, name, nickname, error_text
         )
         return grid, name, nickname, error_text
 
@@ -233,6 +236,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.qrz = QRZlookup(
                 self.settings_dict["qrzusername"], self.settings_dict["qrzpassword"]
             )
+            if not self.qrz.session:
+                self.QRZ_icon.setStyleSheet("color: rgb(136, 138, 133);")
+            else:
+                self.QRZ_icon.setStyleSheet("color: rgb(128, 128, 0);")
         self.F1.clicked.connect(self.sendf1)
         self.F2.clicked.connect(self.sendf2)
         self.F3.clicked.connect(self.sendf3)
@@ -503,7 +510,10 @@ class MainWindow(QtWidgets.QMainWindow):
         macro = macro.replace("{HISSTATE}", hisstate)
         return macro
 
-    def key_press_event(self, event):
+    def keyPressEvent(self, event):
+        """
+        Process pressing TAB, ESC, F1-F12
+        """
         if event.key() == Qt.Key_Escape:
             self.clearinputs()
         if event.key() == Qt.Key_Tab:
@@ -887,15 +897,6 @@ class MainWindow(QtWidgets.QMainWindow):
         Perform functions after QSO edited or deleted.
         """
         self.logwindow()
-
-    def qrzlookup(self, call):
-        logging.info("qrzlookup: %s", call)
-        grid = False
-        name = False
-        if self.has_internet():
-            grid, name, nickname, error = self.qrz.lookup(call)
-            logging.info("qrzlookup: %s %s %s %s", grid, name, nickname, error)
-        return grid, name
 
     def adif(self):
         logname = "SST.adi"
