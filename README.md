@@ -7,10 +7,9 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 
 ![mainscreen](pics/k1usnsst_main.png "Main Screen")
 
-## Changes since release tag: 22.1.14 Cracked Phone Screen
+## Changes since release tag: 22.1.17 Burnt Popcorn
 
-* Fixed an odd problem with text fields. If you edited text in a field, after the string was cleaned and validated it would put the cursor at the end of the string, causing you to have to arrow back to edit more.
-* If you pressed TAB to change fields. The text in the field would be highlighted/selected. If you happen to to press any key after that your text would be replaced. Not optimal...  
+* Added a persistent store of past contacts. This info is stored in `pastcontacts.json` in your home directory. It's, as it's extension shows, a json file. But you should always log the exchange that was sent.
 
 ## Running from source
 
