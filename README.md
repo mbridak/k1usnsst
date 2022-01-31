@@ -10,14 +10,16 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 ## Changes since release tag: 22.1.17 Burnt Popcorn
 
 * Added a persistent store of past contacts. This info is stored in `pastcontacts.json` in your home directory. It's, as it's extension shows, a json file. But you should always log the exchange that was sent.
+* Fixed/rewrote QRZ lookups.
+* Instead of loading the radio state icons each and every single time we polled the radio. We now load the states once into an object, then set the label to the pre-loaded object. saving hundreds if not thousands of drive accesses.
 
 ## Running from source
 
-Install Python 3, then two required libraries.
+Install Python 3, then three required libraries.
 
 If you're the Ubuntu/Debian type you can:
 
-`sudo apt install python3-pyqt5 python3-requests`
+`sudo apt install python3-pyqt5 python3-requests`python3-bs4
 
 You can install libraries via pip:
 
