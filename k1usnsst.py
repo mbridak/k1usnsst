@@ -4,8 +4,6 @@ Logger for K1USN SST
 """
 
 import logging
-
-# from typing import List
 import xmlrpc.client
 import sys
 import sqlite3
