@@ -368,7 +368,8 @@ class MainWindow(QtWidgets.QMainWindow):
         except IOError as exception:
             logging.critical("savepastcontacts: %s", exception)
 
-    def has_internet(self):
+    @staticmethod
+    def has_internet() -> bool:
         """
         Connect to a main DNS server to check connectivity.
         Returns True/False
@@ -390,29 +391,29 @@ class MainWindow(QtWidgets.QMainWindow):
         logging.info("MainWindow: getband: %s", freq)
         if freq.isnumeric():
             frequency = int(float(freq))
-            if frequency > 1800000 and frequency < 2000000:
+            if 2000000 > frequency > 1800000:
                 return "160"
-            if frequency > 3500000 and frequency < 4000000:
+            if 4000000 > frequency > 3500000:
                 return "80"
-            if frequency > 5330000 and frequency < 5406000:
+            if 5406000 > frequency > 5330000:
                 return "60"
-            if frequency > 7000000 and frequency < 7300000:
+            if 7300000 > frequency > 7000000:
                 return "40"
-            if frequency > 10100000 and frequency < 10150000:
+            if 10150000 > frequency > 10100000:
                 return "30"
-            if frequency > 14000000 and frequency < 14350000:
+            if 14350000 > frequency > 14000000:
                 return "20"
-            if frequency > 18068000 and frequency < 18168000:
+            if 18168000 > frequency > 18068000:
                 return "17"
-            if frequency > 21000000 and frequency < 21450000:
+            if 21450000 > frequency > 21000000:
                 return "15"
-            if frequency > 24890000 and frequency < 24990000:
+            if 24990000 > frequency > 24890000:
                 return "12"
-            if frequency > 28000000 and frequency < 29700000:
+            if 29700000 > frequency > 28000000:
                 return "10"
-            if frequency > 50000000 and frequency < 54000000:
+            if 54000000 > frequency > 50000000:
                 return "6"
-            if frequency > 144000000 and frequency < 148000000:
+            if 148000000 > frequency > 144000000:
                 return "2"
         else:
             return "0"
@@ -516,7 +517,7 @@ class MainWindow(QtWidgets.QMainWindow):
         macro = macro.replace("{HISSTATE}", hisstate)
         return macro
 
-    def keyPressEvent(self, event) -> None:
+    def keyPressEvent(self, event) -> None:  # pylint: disable=invalid-name
         """
         Overrides the QtWidgets keyPressEvent
         Process pressing TAB, ESC, F1-F12
@@ -1070,23 +1071,23 @@ class MainWindow(QtWidgets.QMainWindow):
                         f"where band='{band}' and sandpdx = 'DX'"
                     )
                     cursor.execute(query)
-                    dx = cursor.fetchone()
+                    d_x = cursor.fetchone()
                     with open(
                         "SST_Statistics.txt", "a", encoding="ascii"
                     ) as file_descriptor:
                         print(
                             f"band:{band} QSOs:{qso[0]} state and "
-                            f"province:{sandp[0]} dx:{dx[0]} mult:{sandp[0]+dx[0]}",
+                            f"province:{sandp[0]} dx:{d_x[0]} mult:{sandp[0]+d_x[0]}",
                             end="\r\n",
                             file=file_descriptor,
                         )
                     logging.info(
-                        "score: band:%s q:%s s&p:%s dx:%s", band, qso, sandp, dx
+                        "score: band:%s q:%s s&p:%s dx:%s", band, qso, sandp, d_x
                     )
             except sqlite3.Error as exception:
                 logging.critical("calcscore: %s", exception)
             total_qso += qso[0]
-            total_mults += sandp[0] + dx[0]
+            total_mults += sandp[0] + d_x[0]
             total_score = total_qso * total_mults
         self.Total_CW.setText(str(total_qso))
         self.Total_Mults.setText(str(total_mults))
