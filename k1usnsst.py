@@ -20,6 +20,7 @@ from PyQt5.QtCore import QDir, Qt
 from PyQt5.QtGui import QFontDatabase
 from bs4 import BeautifulSoup as bs
 import requests
+from cwinterface import CW
 
 
 def relpath(filename: str) -> str:
@@ -202,8 +203,12 @@ class MainWindow(QtWidgets.QMainWindow):
         "rigcontrolip": "localhost",
         "rigcontrolport": "12345",
         "usehamdb": 0,
+        "cwtype": 0,
+        "cwip": "localhost",
+        "cwport": 6789,
     }
     fkeys = {}
+    cw = None
     keyerserver = "http://localhost:8000"
     pastcontacts = {}
 
@@ -232,6 +237,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.radiochecktimer.timeout.connect(self.radio)
         self.radiochecktimer.start(1000)
         self.changeband()
+        self.cw = None
         self.readpreferences()
         if self.settings_dict["useqrz"]:
             self.qrz = QRZlookup(
@@ -241,6 +247,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.QRZ_icon.setStyleSheet("color: rgb(136, 138, 133);")
             else:
                 self.QRZ_icon.setStyleSheet("color: rgb(128, 128, 0);")
+
         self.F1.clicked.connect(self.sendf1)
         self.F2.clicked.connect(self.sendf2)
         self.F3.clicked.connect(self.sendf3)
@@ -578,14 +585,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Sends string to k1el keyer.
         """
-        logging.info("sendcw: %s", texttosend)
-        with ServerProxy(self.keyerserver) as proxy:
-            try:
-                proxy.k1elsendstring(texttosend)
-            except Error as exception:
-                logging.info("%s, xmlrpc error: %s", self.keyerserver, exception)
-            except ConnectionRefusedError:
-                logging.info("%s, xmlrpc Connection Refused", self.keyerserver)
+        if self.cw:
+            self.cw.sendcw(texttosend)
 
     def sendf1(self) -> None:
         """
@@ -835,6 +836,19 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.server = xmlrpc.client.ServerProxy(
                             f"http://{self.settings_dict['rigcontrolip']}:"
                             f"{self.settings_dict['rigcontrolport']}"
+                        )
+                    if "cwtype" not in self.settings_dict:  # if using old json file.
+                        self.settings_dict["cwtype"] = 0
+                        self.settings_dict["cwip"] = "localhost"
+                        self.settings_dict["cwport"] = 6789
+                        self.writepreferences()
+                    if self.settings_dict["cwtype"] == 0:
+                        self.cw = None
+                    else:
+                        self.cw = CW(
+                            self.settings_dict["cwtype"],
+                            self.settings_dict["cwip"],
+                            self.settings_dict["cwport"],
                         )
             else:
                 with open(
@@ -1233,17 +1247,28 @@ class Settings(QtWidgets.QDialog):
                 home + "/.k1usnsst.json", "rt", encoding="utf-8"
             ) as file_descriptor:
                 self.settings_dict = loads(file_descriptor.read())
+
+                self.usehamdb_checkBox.setChecked(bool(self.settings_dict["usehamdb"]))
+                self.useqrz_checkBox.setChecked(bool(self.settings_dict["useqrz"]))
                 self.qrzname_field.setText(self.settings_dict["qrzusername"])
                 self.qrzpass_field.setText(self.settings_dict["qrzpassword"])
                 self.qrzurl_field.setText(self.settings_dict["qrzurl"])
+
                 self.rigcontrolip_field.setText(self.settings_dict["rigcontrolip"])
                 self.rigcontrolport_field.setText(self.settings_dict["rigcontrolport"])
-                self.useqrz_checkBox.setChecked(bool(self.settings_dict["useqrz"]))
                 if self.settings_dict["userigcontrol"] == 1:
                     self.radioButton_rigctld.setChecked(True)
                 if self.settings_dict["userigcontrol"] == 2:
                     self.radioButton_flrig.setChecked(True)
-                self.usehamdb_checkBox.setChecked(bool(self.settings_dict["usehamdb"]))
+
+                self.cwip_field.setText(self.settings_dict["cwip"])
+                self.cwport_field.setText(str(self.settings_dict["cwport"]))
+                self.usecwdaemon_radioButton.setChecked(
+                    bool(self.settings_dict["cwtype"] == 1)
+                )
+                self.usepywinkeyer_radioButton.setChecked(
+                    bool(self.settings_dict["cwtype"] == 2)
+                )
         except IOError as exception:
             logging.critical("Settings.setup: %s", exception)
 
@@ -1269,13 +1294,23 @@ class Settings(QtWidgets.QDialog):
                 self.settings_dict["userigcontrol"] = 1
             if self.radioButton_flrig.isChecked():
                 self.settings_dict["userigcontrol"] = 2
+            self.settings_dict["rigcontrolip"] = self.rigcontrolip_field.text()
+            self.settings_dict["rigcontrolport"] = self.rigcontrolport_field.text()
+
+            self.settings_dict["usehamdb"] = int(self.usehamdb_checkBox.isChecked())
+            self.settings_dict["useqrz"] = int(self.useqrz_checkBox.isChecked())
             self.settings_dict["qrzusername"] = self.qrzname_field.text()
             self.settings_dict["qrzpassword"] = self.qrzpass_field.text()
             self.settings_dict["qrzurl"] = self.qrzurl_field.text()
-            self.settings_dict["rigcontrolip"] = self.rigcontrolip_field.text()
-            self.settings_dict["rigcontrolport"] = self.rigcontrolport_field.text()
-            self.settings_dict["useqrz"] = int(self.useqrz_checkBox.isChecked())
-            self.settings_dict["usehamdb"] = int(self.usehamdb_checkBox.isChecked())
+
+            self.settings_dict["cwip"] = self.cwip_field.text()
+            self.settings_dict["cwport"] = int(self.cwport_field.text())
+            self.settings_dict["cwtype"] = 0
+            if self.usecwdaemon_radioButton.isChecked():
+                self.settings_dict["cwtype"] = 1
+            if self.usepywinkeyer_radioButton.isChecked():
+                self.settings_dict["cwtype"] = 2
+
             logging.info(self.settings_dict)
             home = os.path.expanduser("~")
             with open(
