@@ -12,6 +12,8 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 * Added a persistent store of past contacts. This info is stored in `pastcontacts.json` in your home directory. It's, as it's extension shows, a json file. But you should always log the exchange that was sent.
 * Fixed/rewrote QRZ lookups.
 * Instead of loading the radio state icons each and every single time we polled the radio. We now load the states once into an object, then set the label to the pre-loaded object. saving hundreds if not thousands of drive accesses.
+* Added a CW class, which lets you choose either cwdaemon or PyWinkeyer for generating the CW.
+* Updated the settings screen to use a tabbed interface.
 
 ## Running from source
 
@@ -77,6 +79,12 @@ SST_Statistics.txt, which holds a breakdown of bands / QSOs / Mults, and a point
 SST.adi, an ADIF file you can use to merge into your main log if you so choose.
 
 Before the next SST event you should delete the SST.db file to start fresh.
+
+## Enabling CW Interface
+
+In the setting screen, switch to the CW tab. Set the host that is running either cwdaemon or PyWinkeyer. Most likely `localhost`. Set the port that the service is listening on. cwdaemon defaults to 6789, Pywinkeyer defaults to 8000. And lastly click the bullet next to the service you will be using.
+
+![CW settings screen](pics/cwsettings.png) 
 
 ## CW Macros
 
