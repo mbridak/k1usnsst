@@ -20,6 +20,7 @@ from PyQt5.QtCore import QDir, Qt
 from PyQt5.QtGui import QFontDatabase
 from bs4 import BeautifulSoup as bs
 import requests
+from cwinterface import CW
 
 
 def relpath(filename: str) -> str:
@@ -202,8 +203,12 @@ class MainWindow(QtWidgets.QMainWindow):
         "rigcontrolip": "localhost",
         "rigcontrolport": "12345",
         "usehamdb": 0,
+        "cwtype": 0,
+        "cwip": "localhost",
+        "cwport": 6789,
     }
     fkeys = {}
+    cw = None
     keyerserver = "http://localhost:8000"
     pastcontacts = {}
 
@@ -232,6 +237,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.radiochecktimer.timeout.connect(self.radio)
         self.radiochecktimer.start(1000)
         self.changeband()
+        self.cw = None
         self.readpreferences()
         if self.settings_dict["useqrz"]:
             self.qrz = QRZlookup(
@@ -241,6 +247,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.QRZ_icon.setStyleSheet("color: rgb(136, 138, 133);")
             else:
                 self.QRZ_icon.setStyleSheet("color: rgb(128, 128, 0);")
+
         self.F1.clicked.connect(self.sendf1)
         self.F2.clicked.connect(self.sendf2)
         self.F3.clicked.connect(self.sendf3)
@@ -368,7 +375,8 @@ class MainWindow(QtWidgets.QMainWindow):
         except IOError as exception:
             logging.critical("savepastcontacts: %s", exception)
 
-    def has_internet(self):
+    @staticmethod
+    def has_internet() -> bool:
         """
         Connect to a main DNS server to check connectivity.
         Returns True/False
@@ -390,29 +398,29 @@ class MainWindow(QtWidgets.QMainWindow):
         logging.info("MainWindow: getband: %s", freq)
         if freq.isnumeric():
             frequency = int(float(freq))
-            if frequency > 1800000 and frequency < 2000000:
+            if 2000000 > frequency > 1800000:
                 return "160"
-            if frequency > 3500000 and frequency < 4000000:
+            if 4000000 > frequency > 3500000:
                 return "80"
-            if frequency > 5330000 and frequency < 5406000:
+            if 5406000 > frequency > 5330000:
                 return "60"
-            if frequency > 7000000 and frequency < 7300000:
+            if 7300000 > frequency > 7000000:
                 return "40"
-            if frequency > 10100000 and frequency < 10150000:
+            if 10150000 > frequency > 10100000:
                 return "30"
-            if frequency > 14000000 and frequency < 14350000:
+            if 14350000 > frequency > 14000000:
                 return "20"
-            if frequency > 18068000 and frequency < 18168000:
+            if 18168000 > frequency > 18068000:
                 return "17"
-            if frequency > 21000000 and frequency < 21450000:
+            if 21450000 > frequency > 21000000:
                 return "15"
-            if frequency > 24890000 and frequency < 24990000:
+            if 24990000 > frequency > 24890000:
                 return "12"
-            if frequency > 28000000 and frequency < 29700000:
+            if 29700000 > frequency > 28000000:
                 return "10"
-            if frequency > 50000000 and frequency < 54000000:
+            if 54000000 > frequency > 50000000:
                 return "6"
-            if frequency > 144000000 and frequency < 148000000:
+            if 148000000 > frequency > 144000000:
                 return "2"
         else:
             return "0"
@@ -516,7 +524,7 @@ class MainWindow(QtWidgets.QMainWindow):
         macro = macro.replace("{HISSTATE}", hisstate)
         return macro
 
-    def keyPressEvent(self, event) -> None:
+    def keyPressEvent(self, event) -> None:  # pylint: disable=invalid-name
         """
         Overrides the QtWidgets keyPressEvent
         Process pressing TAB, ESC, F1-F12
@@ -577,14 +585,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Sends string to k1el keyer.
         """
-        logging.info("sendcw: %s", texttosend)
-        with ServerProxy(self.keyerserver) as proxy:
-            try:
-                proxy.k1elsendstring(texttosend)
-            except Error as exception:
-                logging.info("%s, xmlrpc error: %s", self.keyerserver, exception)
-            except ConnectionRefusedError:
-                logging.info("%s, xmlrpc Connection Refused", self.keyerserver)
+        if self.cw:
+            self.cw.sendcw(texttosend)
 
     def sendf1(self) -> None:
         """
@@ -835,6 +837,19 @@ class MainWindow(QtWidgets.QMainWindow):
                             f"http://{self.settings_dict['rigcontrolip']}:"
                             f"{self.settings_dict['rigcontrolport']}"
                         )
+                    if "cwtype" not in self.settings_dict:  # if using old json file.
+                        self.settings_dict["cwtype"] = 0
+                        self.settings_dict["cwip"] = "localhost"
+                        self.settings_dict["cwport"] = 6789
+                        self.writepreferences()
+                    if self.settings_dict["cwtype"] == 0:
+                        self.cw = None
+                    else:
+                        self.cw = CW(
+                            self.settings_dict["cwtype"],
+                            self.settings_dict["cwip"],
+                            self.settings_dict["cwport"],
+                        )
             else:
                 with open(
                     home + "/.k1usnsst.json", "wt", encoding="utf-8"
@@ -1070,23 +1085,23 @@ class MainWindow(QtWidgets.QMainWindow):
                         f"where band='{band}' and sandpdx = 'DX'"
                     )
                     cursor.execute(query)
-                    dx = cursor.fetchone()
+                    d_x = cursor.fetchone()
                     with open(
                         "SST_Statistics.txt", "a", encoding="ascii"
                     ) as file_descriptor:
                         print(
                             f"band:{band} QSOs:{qso[0]} state and "
-                            f"province:{sandp[0]} dx:{dx[0]} mult:{sandp[0]+dx[0]}",
+                            f"province:{sandp[0]} dx:{d_x[0]} mult:{sandp[0]+d_x[0]}",
                             end="\r\n",
                             file=file_descriptor,
                         )
                     logging.info(
-                        "score: band:%s q:%s s&p:%s dx:%s", band, qso, sandp, dx
+                        "score: band:%s q:%s s&p:%s dx:%s", band, qso, sandp, d_x
                     )
             except sqlite3.Error as exception:
                 logging.critical("calcscore: %s", exception)
             total_qso += qso[0]
-            total_mults += sandp[0] + dx[0]
+            total_mults += sandp[0] + d_x[0]
             total_score = total_qso * total_mults
         self.Total_CW.setText(str(total_qso))
         self.Total_Mults.setText(str(total_mults))
@@ -1232,17 +1247,28 @@ class Settings(QtWidgets.QDialog):
                 home + "/.k1usnsst.json", "rt", encoding="utf-8"
             ) as file_descriptor:
                 self.settings_dict = loads(file_descriptor.read())
+
+                self.usehamdb_checkBox.setChecked(bool(self.settings_dict["usehamdb"]))
+                self.useqrz_checkBox.setChecked(bool(self.settings_dict["useqrz"]))
                 self.qrzname_field.setText(self.settings_dict["qrzusername"])
                 self.qrzpass_field.setText(self.settings_dict["qrzpassword"])
                 self.qrzurl_field.setText(self.settings_dict["qrzurl"])
+
                 self.rigcontrolip_field.setText(self.settings_dict["rigcontrolip"])
                 self.rigcontrolport_field.setText(self.settings_dict["rigcontrolport"])
-                self.useqrz_checkBox.setChecked(bool(self.settings_dict["useqrz"]))
                 if self.settings_dict["userigcontrol"] == 1:
                     self.radioButton_rigctld.setChecked(True)
                 if self.settings_dict["userigcontrol"] == 2:
                     self.radioButton_flrig.setChecked(True)
-                self.usehamdb_checkBox.setChecked(bool(self.settings_dict["usehamdb"]))
+
+                self.cwip_field.setText(self.settings_dict["cwip"])
+                self.cwport_field.setText(str(self.settings_dict["cwport"]))
+                self.usecwdaemon_radioButton.setChecked(
+                    bool(self.settings_dict["cwtype"] == 1)
+                )
+                self.usepywinkeyer_radioButton.setChecked(
+                    bool(self.settings_dict["cwtype"] == 2)
+                )
         except IOError as exception:
             logging.critical("Settings.setup: %s", exception)
 
@@ -1268,13 +1294,23 @@ class Settings(QtWidgets.QDialog):
                 self.settings_dict["userigcontrol"] = 1
             if self.radioButton_flrig.isChecked():
                 self.settings_dict["userigcontrol"] = 2
+            self.settings_dict["rigcontrolip"] = self.rigcontrolip_field.text()
+            self.settings_dict["rigcontrolport"] = self.rigcontrolport_field.text()
+
+            self.settings_dict["usehamdb"] = int(self.usehamdb_checkBox.isChecked())
+            self.settings_dict["useqrz"] = int(self.useqrz_checkBox.isChecked())
             self.settings_dict["qrzusername"] = self.qrzname_field.text()
             self.settings_dict["qrzpassword"] = self.qrzpass_field.text()
             self.settings_dict["qrzurl"] = self.qrzurl_field.text()
-            self.settings_dict["rigcontrolip"] = self.rigcontrolip_field.text()
-            self.settings_dict["rigcontrolport"] = self.rigcontrolport_field.text()
-            self.settings_dict["useqrz"] = int(self.useqrz_checkBox.isChecked())
-            self.settings_dict["usehamdb"] = int(self.usehamdb_checkBox.isChecked())
+
+            self.settings_dict["cwip"] = self.cwip_field.text()
+            self.settings_dict["cwport"] = int(self.cwport_field.text())
+            self.settings_dict["cwtype"] = 0
+            if self.usecwdaemon_radioButton.isChecked():
+                self.settings_dict["cwtype"] = 1
+            if self.usepywinkeyer_radioButton.isChecked():
+                self.settings_dict["cwtype"] = 2
+
             logging.info(self.settings_dict)
             home = os.path.expanduser("~")
             with open(
