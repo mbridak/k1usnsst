@@ -9,6 +9,8 @@ import sys
 import sqlite3
 import socket
 import os
+import psutil
+import re
 
 from json import dumps, loads
 from datetime import datetime
@@ -272,6 +274,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.readpreferences()
 
     @staticmethod
+    def check_process(processname):
+        """checks to see if a process is running."""
+        for proc in psutil.process_iter():
+            if bool(re.match(processname, proc.name().lower())):
+                logging.info("%s running", processname)
+                return True
+        logging.info("%s not running", processname)
+        return False
+
+    @staticmethod
     def relpath(filename: str) -> str:
         """
         If the program is packaged with pyinstaller,
@@ -445,16 +457,19 @@ class MainWindow(QtWidgets.QMainWindow):
         Poll rigctld to get band.
         """
         if self.flrig:
-            try:
-                newfreq = self.server.rig.get_vfo()
-                self.radio_icon.setPixmap(self.radio_green)
-                if newfreq != self.oldfreq:
-                    self.oldfreq = newfreq
-                    self.setband(str(self.getband(newfreq)))
-            except socket.error as exception:
+            if self.check_process("flrig"):
+                try:
+                    newfreq = self.server.rig.get_vfo()
+                    self.radio_icon.setPixmap(self.radio_green)
+                    if newfreq != self.oldfreq:
+                        self.oldfreq = newfreq
+                        self.setband(str(self.getband(newfreq)))
+                except socket.error as exception:
+                    self.radio_icon.setPixmap(self.radio_red)
+                    logging.warning("poll_radio: flrig: %s", exception)
+                return
+            else:
                 self.radio_icon.setPixmap(self.radio_red)
-                logging.warning("poll_radio: flrig: %s", exception)
-            return
         if self.rigonline:
             self.rigctrlsocket.settimeout(0.5)
             self.rigctrlsocket.send(b"f")
@@ -473,24 +488,28 @@ class MainWindow(QtWidgets.QMainWindow):
         if not (self.flrig or self.userigctl):
             self.radio_icon.setPixmap(self.radio_grey)
         if self.userigctl:
-            self.rigctrlsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.rigctrlsocket.settimeout(0.1)
-            self.rigonline = True
-            try:
-                logging.info(
-                    "check_radio: %s %s",
-                    self.settings_dict["rigcontrolip"],
-                    self.settings_dict["rigcontrolport"],
-                )
-                self.rigctrlsocket.connect(
-                    (
+            if self.check_process("rigctld"):
+                self.rigctrlsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.rigctrlsocket.settimeout(0.1)
+                self.rigonline = True
+                try:
+                    logging.info(
+                        "check_radio: %s %s",
                         self.settings_dict["rigcontrolip"],
-                        int(self.settings_dict["rigcontrolport"]),
+                        self.settings_dict["rigcontrolport"],
                     )
-                )
-            except socket.error:
+                    self.rigctrlsocket.connect(
+                        (
+                            self.settings_dict["rigcontrolip"],
+                            int(self.settings_dict["rigcontrolport"]),
+                        )
+                    )
+                except socket.error:
+                    self.rigonline = False
+                    logging.info("Rig Offline.")
+                    self.radio_icon.setPixmap(self.radio_red)
+            else:
                 self.rigonline = False
-                logging.info("check_radio: Rig Offline.")
                 self.radio_icon.setPixmap(self.radio_red)
         else:
             self.rigonline = False
@@ -785,7 +804,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
                 log = cursor.fetchall()
         except sqlite3.Error as exception:
-            logging.critical("dup_check: %s", exception)
+            logging.critical("%s", exception)
             return
         for item in log:
             _, hisname, sandpdx, hisband = item
@@ -809,13 +828,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
                 cursor.execute(sql_table)
         except sqlite3.Error as exception:
-            logging.critical("create_db: %s", exception)
+            logging.critical("%s", exception)
 
     def readpreferences(self) -> None:
         """
         Reads preferences from json file.
         """
-        logging.info("readpreferences:")
         try:
             home = os.path.expanduser("~")
             if os.path.exists(home + "/.k1usnsst.json"):
@@ -856,13 +874,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 ) as file_descriptor:
                     file_descriptor.write(dumps(self.settings_dict))
         except Error as exception:
-            logging.critical("readpreferences: %s", exception)
+            logging.critical("%s", exception)
 
     def writepreferences(self) -> None:
         """
         Write preferences to json file.
         """
-        logging.info("writepreferences:")
         home = os.path.expanduser("~")
         with open(home + "/.k1usnsst.json", "wt", encoding="utf-8") as file_descriptor:
             file_descriptor.write(dumps(self.settings_dict))
@@ -871,7 +888,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Log Contact
         """
-        logging.info("log_contact:")
         grid = False
         opname = False
         error = False
@@ -885,7 +901,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.settings_dict["useqrz"]:
             grid, opname, _, error = self.qrz.lookup(self.callsign_entry.text())
         if error:
-            logging.info("log_contact: lookup error %s", error)
+            logging.info("lookup error %s", error)
         if not grid:
             grid = ""
         if not opname:
@@ -905,12 +921,12 @@ class MainWindow(QtWidgets.QMainWindow):
                     "INSERT INTO contacts(callsign, name, sandpdx, date_time, "
                     "frequency, band, grid, opname) VALUES(?,?,?,datetime('now'),?,?,?,?)"
                 )
-                logging.info("log_contact: %s\n%s", sql, contact)
+                logging.info("%s\n%s", sql, contact)
                 cur = conn.cursor()
                 cur.execute(sql, contact)
                 conn.commit()
         except sqlite3.Error as exception:
-            logging.critical("Log Contact: %s", exception)
+            logging.critical("%s", exception)
         self.logwindow()
         self.clearinputs()
 
@@ -918,7 +934,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Populates the list of contacts stored in the database.
         """
-        logging.info("loqwindow:")
         self.listWidget.clear()
         try:
             with sqlite3.connect(self.database) as conn:
@@ -926,7 +941,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 cursor.execute("select * from contacts order by date_time desc")
                 log = cursor.fetchall()
         except sqlite3.Error as exception:
-            logging.critical("logwindow: %s", exception)
+            logging.critical("%s", exception)
         for contact in log:
             logid, hiscall, hisname, sandpdx, the_date_and_time, _, band, _, _ = contact
             logline = (
@@ -940,7 +955,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Gets the line of the log clicked on, and passes that line to the edit dialog.
         """
-        logging.info("qsoclicked:")
         item = self.listWidget.currentItem()
         linetopass = item.text()
         dialog = EditQsoDialog(self)
@@ -966,7 +980,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 cursor.execute("select * from contacts order by date_time ASC")
                 log = cursor.fetchall()
         except sqlite3.Error as exception:
-            logging.critical("adif: %s", exception)
+            logging.critical("%s", exception)
             self.dupe_indicator.setText("Error!")
             return
         grid = False
@@ -1060,7 +1074,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         determine the amount od QSO's, S/P per band, DX per band.
         """
-        logging.info("calcscore()")
         total_qso = 0
         total_mults = 0
         total_score = 0
@@ -1099,7 +1112,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         "score: band:%s q:%s s&p:%s dx:%s", band, qso, sandp, d_x
                     )
             except sqlite3.Error as exception:
-                logging.critical("calcscore: %s", exception)
+                logging.critical("%s", exception)
             total_qso += qso[0]
             total_mults += sandp[0] + d_x[0]
             total_score = total_qso * total_mults
@@ -1122,7 +1135,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 cursor.execute("select DISTINCT band from contacts")
                 returned_query = cursor.fetchall()
         except sqlite3.Error as exception:
-            logging.critical("getbands: %s", exception)
+            logging.critical("%s", exception)
             return []
         if returned_query:
             for count in returned_query:
@@ -1157,7 +1170,7 @@ class EditQsoDialog(QtWidgets.QDialog):
         """
         This, well.. sets up the variables
         """
-        logging.info("EditQsoDialog.setup: %s : %s", linetopass, linetopass.split())
+        logging.info("%s : %s", linetopass, linetopass.split())
         self.database = thedatabase
         (
             self.theitem,
@@ -1206,7 +1219,7 @@ class EditQsoDialog(QtWidgets.QDialog):
                 cur.execute(sql)
                 conn.commit()
         except sqlite3.Error as exception:
-            logging.critical("EditQsoDialog.save_changes: %s", exception)
+            logging.critical("%s", exception)
         self.change.lineChanged.emit()
 
     def delete_contact(self):
@@ -1220,7 +1233,7 @@ class EditQsoDialog(QtWidgets.QDialog):
                 cur.execute(sql)
                 conn.commit()
         except sqlite3.Error as exception:
-            logging.critical("EditQsoDialog.delete_contact: %s", exception)
+            logging.critical("%s", exception)
         self.change.lineChanged.emit()
         self.close()
 
@@ -1270,7 +1283,7 @@ class Settings(QtWidgets.QDialog):
                     bool(self.settings_dict["cwtype"] == 2)
                 )
         except IOError as exception:
-            logging.critical("Settings.setup: %s", exception)
+            logging.critical("%s", exception)
 
     @staticmethod
     def relpath(filename: str) -> str:
@@ -1318,14 +1331,28 @@ class Settings(QtWidgets.QDialog):
             ) as file_descriptor:
                 file_descriptor.write(dumps(self.settings_dict))
         except Error as exception:
-            logging.critical("Settings.save_changes: %s", exception)
+            logging.critical("%s", exception)
 
 
 if __name__ == "__main__":
     if Path("./debug").exists():
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(
+            format=(
+                "[%(asctime)s] %(levelname)s %(module)s - "
+                "%(funcName)s Line %(lineno)d:\n%(message)s"
+            ),
+            datefmt="%H:%M:%S",
+            level=logging.INFO,
+        )
     else:
-        logging.basicConfig(level=logging.WARNING)
+        logging.basicConfig(
+            format=(
+                "[%(asctime)s] %(levelname)s %(module)s - "
+                "%(funcName)s Line %(lineno)d:\n%(message)s"
+            ),
+            datefmt="%H:%M:%S",
+            level=logging.WARNING,
+        )
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("Fusion")
     font_dir = relpath("font")
