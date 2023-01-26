@@ -3,17 +3,14 @@
 [![License: GPL v3](https://img.shields.io/github/license/mbridak/Tuner)](https://opensource.org/licenses/MIT)  [![Python: 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)  [![Made With:PyQt5](https://img.shields.io/badge/Made%20with-PyQt5-red)](https://pypi.org/project/PyQt5/)
 
 ## What it is
+
 This is a scratch my own itch project. It's just a simple, lightweight logger for the [K1USN](http://www.k1usn.com/sst.html) slow speed CW contest. I consider it now in a usable stable state. Feel free to use it and give me your comments.
 
 ![mainscreen](pics/k1usnsst_main.png "Main Screen")
 
-## Changes since release tag: 22.1.17 Burnt Popcorn
+## Recent Changes
 
-* Added a persistent store of past contacts. This info is stored in `pastcontacts.json` in your home directory. It's, as it's extension shows, a json file. But you should always log the exchange that was sent.
-* Fixed/rewrote QRZ lookups.
-* Instead of loading the radio state icons each and every single time we polled the radio. We now load the states once into an object, then set the label to the pre-loaded object. saving hundreds if not thousands of drive accesses.
-* Added a CW class, which lets you choose either cwdaemon or PyWinkeyer for generating the CW.
-* Updated the settings screen to use a tabbed interface.
+- Interface is now resizable
 
 ## Running from source
 
@@ -50,6 +47,7 @@ for Windows:
 Look in the newly created dist directory to find your binary.
 
 ## Install a Linux icon
+
 If, after you build a binary, you would like to install a desktop icon, you can `cd` into the `install_icon` folder and run `install.sh`. it will copy the executable from the `dist` directory into `~/.local/bin` and install a lovely icon and desktop launcher.
 
 ## QRZ / HamDB / CAT
@@ -84,7 +82,7 @@ Before the next SST event you should delete the SST.db file to start fresh.
 
 In the setting screen, switch to the CW tab. Set the host that is running either cwdaemon or PyWinkeyer. Most likely `localhost`. Set the port that the service is listening on. cwdaemon defaults to 6789, Pywinkeyer defaults to 8000. And lastly click the bullet next to the service you will be using.
 
-![CW settings screen](pics/cwsettings.png) 
+![CW settings screen](pics/cwsettings.png)
 
 ## CW Macros
 
