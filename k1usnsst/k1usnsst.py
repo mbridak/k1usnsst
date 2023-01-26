@@ -22,7 +22,7 @@ from PyQt5.QtCore import QDir, Qt
 from PyQt5.QtGui import QFontDatabase
 from bs4 import BeautifulSoup as bs
 import requests
-from cwinterface import CW
+from k1usnsst.lib.cwinterface import CW
 
 
 def relpath(filename: str) -> str:
