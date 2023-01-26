@@ -229,10 +229,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.radio_grey = QtGui.QPixmap(self.relpath("icon/radio_grey.png"))
         self.radio_green = QtGui.QPixmap(self.relpath("icon/radio_green.png"))
         self.radio_red = QtGui.QPixmap(self.relpath("icon/radio_red.png"))
+        self.gear_icon = QtGui.QIcon(self.relpath("icon/gear16x16.png"))
         self.radio_icon.setPixmap(self.radio_grey)
         self.QRZ_icon.setStyleSheet("color: rgb(136, 138, 133);")
         self.genLogButton.clicked.connect(self.generate_logs)
         self.band_selector.activated.connect(self.changeband)
+        self.settings_gear.setIcon(self.gear_icon)
         self.settings_gear.clicked.connect(self.settingspressed)
         self.rigctrlsocket = None
         self.radiochecktimer = QtCore.QTimer()

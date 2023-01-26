@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>356</width>
-    <height>292</height>
+    <width>379</width>
+    <height>206</height>
    </rect>
   </property>
   <property name="font">
@@ -23,292 +23,228 @@
    <string notr="true">background-color: rgb(46, 52, 54);
 color: rgb(211, 215, 207);</string>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>168</x>
-     <y>250</y>
-     <width>166</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>JetBrains Mono</family>
-     <pointsize>12</pointsize>
-     <weight>50</weight>
-     <bold>false</bold>
-    </font>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
-   </property>
-   <property name="centerButtons">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="editCallsign">
-   <property name="geometry">
-    <rect>
-     <x>130</x>
-     <y>35</y>
-     <width>201</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>JetBrains Mono</family>
-     <pointsize>12</pointsize>
-     <weight>50</weight>
-     <bold>false</bold>
-    </font>
-   </property>
-   <property name="maxLength">
-    <number>14</number>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="editExchange">
-   <property name="geometry">
-    <rect>
-     <x>130</x>
-     <y>88</y>
-     <width>201</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>JetBrains Mono</family>
-     <pointsize>12</pointsize>
-     <weight>50</weight>
-     <bold>false</bold>
-    </font>
-   </property>
-   <property name="maxLength">
-    <number>15</number>
-   </property>
-  </widget>
-  <widget class="QDateTimeEdit" name="editDateTime">
-   <property name="geometry">
-    <rect>
-     <x>130</x>
-     <y>195</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>JetBrains Mono</family>
-     <pointsize>12</pointsize>
-     <weight>50</weight>
-     <bold>false</bold>
-    </font>
-   </property>
-   <property name="dateTime">
-    <datetime>
-     <hour>0</hour>
-     <minute>0</minute>
-     <second>6</second>
-     <year>2000</year>
-     <month>1</month>
-     <day>5</day>
-    </datetime>
-   </property>
-   <property name="currentSection">
-    <enum>QDateTimeEdit::YearSection</enum>
-   </property>
-   <property name="displayFormat">
-    <string>yyyy-MM-dd hh:mm:ss</string>
-   </property>
-   <property name="timeSpec">
-    <enum>Qt::UTC</enum>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="deleteButton">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>250</y>
-     <width>111</width>
-     <height>26</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>JetBrains Mono</family>
-     <pointsize>12</pointsize>
-     <weight>50</weight>
-     <bold>false</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(204, 0, 0);
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>CallSign:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="editCallsign">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="maxLength">
+      <number>14</number>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Exchange:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="editExchange">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="maxLength">
+      <number>15</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Band:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Date/Time:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QPushButton" name="deleteButton">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(204, 0, 0);
 color: rgb(255, 255, 255);</string>
-   </property>
-   <property name="text">
-    <string>Delete QSO</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="editBand">
-   <property name="geometry">
-    <rect>
-     <x>130</x>
-     <y>142</y>
-     <width>86</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>JetBrains Mono</family>
-     <pointsize>12</pointsize>
-     <weight>50</weight>
-     <bold>false</bold>
-    </font>
-   </property>
-   <item>
-    <property name="text">
-     <string>160</string>
-    </property>
+     </property>
+     <property name="text">
+      <string>Delete QSO</string>
+     </property>
+    </widget>
    </item>
-   <item>
-    <property name="text">
-     <string>80</string>
-    </property>
+   <item row="6" column="1">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
+     </property>
+     <property name="centerButtons">
+      <bool>false</bool>
+     </property>
+    </widget>
    </item>
-   <item>
-    <property name="text">
-     <string>60</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>40</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>20</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>15</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>10</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>6</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>2</string>
-    </property>
-   </item>
-  </widget>
-  <widget class="QWidget" name="layoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>21</y>
-     <width>111</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>JetBrains Mono</family>
-     <pointsize>11</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <item>
-     <widget class="QLabel" name="label">
-      <property name="font">
-       <font>
-        <family>JetBrains Mono</family>
-        <pointsize>12</pointsize>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="editBand">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <item>
       <property name="text">
-       <string>CallSign:</string>
+       <string>160</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_2">
-      <property name="font">
-       <font>
-        <family>JetBrains Mono</family>
-        <pointsize>12</pointsize>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
+     </item>
+     <item>
       <property name="text">
-       <string>Exchange:</string>
+       <string>80</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_4">
-      <property name="font">
-       <font>
-        <family>JetBrains Mono</family>
-        <pointsize>12</pointsize>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
+     </item>
+     <item>
       <property name="text">
-       <string>Band:</string>
+       <string>60</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_6">
-      <property name="font">
-       <font>
-        <family>JetBrains Mono</family>
-        <pointsize>12</pointsize>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
+     </item>
+     <item>
       <property name="text">
-       <string>Date/Time:</string>
+       <string>40</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </item>
+     <item>
+      <property name="text">
+       <string>20</string>
       </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+     </item>
+     <item>
+      <property name="text">
+       <string>15</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>10</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>6</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>2</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QDateTimeEdit" name="editDateTime">
+     <property name="font">
+      <font>
+       <family>JetBrains Mono</family>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="dateTime">
+      <datetime>
+       <hour>8</hour>
+       <minute>0</minute>
+       <second>6</second>
+       <year>2000</year>
+       <month>1</month>
+       <day>5</day>
+      </datetime>
+     </property>
+     <property name="currentSection">
+      <enum>QDateTimeEdit::YearSection</enum>
+     </property>
+     <property name="displayFormat">
+      <string>yyyy-MM-dd hh:mm:ss</string>
+     </property>
+     <property name="timeSpec">
+      <enum>Qt::UTC</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections>
