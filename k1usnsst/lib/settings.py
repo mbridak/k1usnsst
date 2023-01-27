@@ -4,6 +4,7 @@
 
 import logging
 import os
+import pkgutil
 import sys
 from json import dumps, loads
 from PyQt5 import QtWidgets, uic
@@ -17,7 +18,11 @@ class Settings(QtWidgets.QDialog):  # pylint: disable=c-extension-no-member
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi(self.relpath("settings.ui"), self)
+        self.working_path = os.path.dirname(
+            pkgutil.get_loader("k1usnsst").get_filename()
+        )
+        data_path = self.working_path + "/data/settings.ui"
+        uic.loadUi(data_path, self)
         self.buttonBox.accepted.connect(self.save_changes)
         self.settings_dict = None
 
@@ -55,18 +60,6 @@ class Settings(QtWidgets.QDialog):  # pylint: disable=c-extension-no-member
                 )
         except IOError as exception:
             logging.critical("%s", exception)
-
-    @staticmethod
-    def relpath(filename: str) -> str:
-        """
-        If the program is packaged with pyinstaller,
-        this is needed since all files will be in a temp folder during execution.
-        """
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            base_path = getattr(sys, "_MEIPASS")
-        else:
-            base_path = os.path.abspath(".")
-        return os.path.join(base_path, filename)
 
     def save_changes(self) -> None:
         """
