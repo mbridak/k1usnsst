@@ -4,37 +4,35 @@ Logger for K1USN SST
 """
 
 import logging
-import xmlrpc.client
-import sys
-import sqlite3
-import socket
 import os
-import psutil
+import pkgutil
 import re
-
-from json import dumps, loads
+import socket
+import sqlite3
+import sys
+import xmlrpc.client
 from datetime import datetime
+from json import dumps, loads
 from pathlib import Path
 from shutil import copyfile
-from xmlrpc.client import ServerProxy, Error
+from xmlrpc.client import Error, ServerProxy  # pylint: disable=unused-import
+
+import psutil
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from PyQt5.QtCore import QDir, Qt
-from PyQt5.QtGui import QFontDatabase
-from bs4 import BeautifulSoup as bs
-import requests
-from cwinterface import CW
+from PyQt5.QtCore import QDir, Qt  # pylint: disable=no-name-in-module
+from PyQt5.QtGui import QFontDatabase  # pylint: disable=no-name-in-module
+
+try:
+    from k1usnsst.lib.cwinterface import CW
+    from k1usnsst.lib.lookup import QRZlookup
+    from k1usnsst.lib.settings import Settings
+except ModuleNotFoundError:
+    from lib.cwinterface import CW
+    from lib.lookup import QRZlookup
+    from lib.settings import Settings
 
 
-def relpath(filename: str) -> str:
-    """
-    Checks to see if program has been packaged with pyinstaller.
-    If so base dir is in a temp folder.
-    """
-    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        base_path = getattr(sys, "_MEIPASS")
-    else:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, filename)
+# pylint: disable=c-extension-no-member
 
 
 def load_fonts_from_dir(directory: str) -> set:
@@ -54,115 +52,6 @@ class QSOEdit(QtCore.QObject):
     """
 
     lineChanged = QtCore.pyqtSignal()
-
-
-class QRZlookup:
-    """
-    Class manages QRZ lookups. Pass in a username and password at instantiation.
-    """
-
-    def __init__(self, username: str, password: str) -> None:
-        self.session = False
-        self.expiration = False
-        self.error = (
-            False  # "password incorrect", "session timeout", and "callsign not found".
-        )
-        self.username = username
-        self.password = password
-        self.qrzurl = "https://xmldata.qrz.com/xml/134/"
-        self.message = False
-        self.lastresult = False
-        self.getsession()
-
-    def getsession(self) -> None:
-        """
-        Get QRZ session key.
-        Stores key in class variable 'session'
-        Error messages returned by QRZ will be in class variable 'error'
-        Other messages returned will be in class variable 'message'
-        """
-        logging.info("QRZlookup-getsession:")
-        self.error = False
-        self.message = False
-        self.session = False
-        try:
-            payload = {"username": self.username, "password": self.password}
-            query_result = requests.get(self.qrzurl, params=payload, timeout=10.0)
-            root = bs(query_result.text, "html.parser")
-            if root.session.find("key"):
-                self.session = root.session.key.text
-            if root.session.find("subexp"):
-                self.expiration = root.session.subexp.text
-            if root.session.find("error"):
-                self.error = root.session.error.text
-            if root.session.find("message"):
-                self.message = root.session.message.text
-            logging.info(
-                "QRZlookup-getsession: key:%s error:%s message:%s",
-                self.session,
-                self.error,
-                self.message,
-            )
-        except requests.exceptions.RequestException as exception:
-            logging.info("QRZlookup-getsession: %s", exception)
-            self.session = False
-            self.error = f"{exception}"
-
-    def lookup(self, call: str) -> tuple:
-        """
-        Lookup a call on QRZ
-        """
-        logging.info("QRZlookup-lookup: %s", call)
-        grid = False
-        name = False
-        error_text = False
-        nickname = False
-        if self.session:
-            payload = {"s": self.session, "callsign": call}
-            query_result = requests.get(self.qrzurl, params=payload, timeout=3.0)
-            root = bs(query_result.text, "html.parser")
-            if not root.session.key:  # key expired get a new one
-                logging.info("QRZlookup-lookup: no key, getting new one.")
-                self.getsession()
-                if self.session:
-                    payload = {"s": self.session, "callsign": call}
-                    query_result = requests.get(
-                        self.qrzurl, params=payload, timeout=3.0
-                    )
-            grid, name, nickname, error_text = self.parse_lookup(query_result)
-        return grid, name, nickname, error_text
-
-    def parse_lookup(self, query_result):
-        """
-        Returns gridsquare and name for a callsign looked up by qrz or hamdb.
-        Or False for both if none found or error.
-        """
-        logging.info("QRZlookup-parse_lookup:")
-        grid = False
-        name = False
-        error_text = False
-        nickname = False
-        if query_result.status_code == 200:
-            root = bs(query_result.text, "html.parser")
-            if root.session.find("error"):
-                error_text = root.session.error.text
-                self.error = error_text
-            if root.find("callsign"):
-                if root.callsign.find("grid"):
-                    grid = root.callsign.grid.text
-                if root.callsign.find("fname"):
-                    name = root.callsign.fname.text
-                if root.find("name"):
-                    if not name:
-                        name = root.find("name").string
-                    else:
-                        name = f"{name} {root.find('name').string}"
-                if root.callsign.find("nickname"):
-                    nickname = root.callsign.nickname.text
-        logging.info(
-            "QRZlookup-parse_lookup: %s %s %s %s", grid, name, nickname, error_text
-        )
-        return grid, name, nickname, error_text
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -217,7 +106,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         logging.info("MainWindow: __init__")
         super().__init__(*args, **kwargs)
-        uic.loadUi(self.relpath("main.ui"), self)
+        self.working_path = os.path.dirname(
+            pkgutil.get_loader("k1usnsst").get_filename()
+        )
+        data_path = self.working_path + "/data/main.ui"
+        uic.loadUi(data_path, self)
         self.listWidget.itemDoubleClicked.connect(self.qsoclicked)
         self.mycallEntry.textEdited.connect(self.changemycall)
         self.myexchangeEntry.textEdited.connect(self.changemyexchange)
@@ -226,10 +119,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.callsign_entry.editingFinished.connect(self.dup_check)
         self.exchange_entry.textEdited.connect(self.exchangetest)
         self.exchange_entry.returnPressed.connect(self.log_contact)
-        self.radio_grey = QtGui.QPixmap(self.relpath("icon/radio_grey.png"))
-        self.radio_green = QtGui.QPixmap(self.relpath("icon/radio_green.png"))
-        self.radio_red = QtGui.QPixmap(self.relpath("icon/radio_red.png"))
-        self.gear_icon = QtGui.QIcon(self.relpath("icon/gear16x16.png"))
+        icon_path = self.working_path + "/icon/"
+        self.radio_grey = QtGui.QPixmap(icon_path + "radio_grey.png")
+        self.radio_green = QtGui.QPixmap(icon_path + "radio_green.png")
+        self.radio_red = QtGui.QPixmap(icon_path + "radio_red.png")
+        self.gear_icon = QtGui.QIcon(icon_path + "gear16x16.png")
         self.radio_icon.setPixmap(self.radio_grey)
         self.QRZ_icon.setStyleSheet("color: rgb(136, 138, 133);")
         self.genLogButton.clicked.connect(self.generate_logs)
@@ -285,19 +179,6 @@ class MainWindow(QtWidgets.QMainWindow):
         logging.info("%s not running", processname)
         return False
 
-    @staticmethod
-    def relpath(filename: str) -> str:
-        """
-        If the program is packaged with pyinstaller,
-        this is needed since all files will be in a temp folder during execution.
-        """
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            base_path = getattr(sys, "_MEIPASS")
-        else:
-            base_path = os.path.abspath(".")
-        logging.info("MainWindow: relpath: %s%s", base_path, filename)
-        return os.path.join(base_path, filename)
-
     def read_cw_macros(self):
         """
         Reads in the CW macros, firsts it checks to see if the file exists. If it does not,
@@ -305,13 +186,9 @@ class MainWindow(QtWidgets.QMainWindow):
         temp directory this is running from... In theory.
         """
 
-        if (
-            getattr(sys, "frozen", False)
-            and hasattr(sys, "_MEIPASS")
-            and not Path("./cwmacros_sst.txt").exists()
-        ):
+        if not Path("./cwmacros_sst.txt").exists():
             logging.info("read_cw_macros: copying default macro file.")
-            copyfile(relpath("cwmacros_sst.txt"), "./cwmacros_sst.txt")
+            copyfile(self.working_path + "/data/cwmacros_sst.txt", "./cwmacros_sst.txt")
         with open("./cwmacros_sst.txt", "r", encoding="utf-8") as cw_macros:
             for line in cw_macros:
                 try:
@@ -1163,7 +1040,11 @@ class EditQsoDialog(QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi(self.relpath("dialog.ui"), self)
+        self.working_path = os.path.dirname(
+            pkgutil.get_loader("k1usnsst").get_filename()
+        )
+        data_path = self.working_path + "/data/dialog.ui"
+        uic.loadUi(data_path, self)
         self.deleteButton.clicked.connect(self.delete_contact)
         self.buttonBox.accepted.connect(self.save_changes)
         self.change = QSOEdit()
@@ -1190,18 +1071,6 @@ class EditQsoDialog(QtWidgets.QDialog):
         date_time = thedate + " " + thetime
         now = QtCore.QDateTime.fromString(date_time, "yyyy-MM-dd hh:mm:ss")
         self.editDateTime.setDateTime(now)
-
-    @staticmethod
-    def relpath(filename: str) -> str:
-        """
-        If the program is packaged with pyinstaller,
-        this is needed since all files will be in a temp folder during execution.
-        """
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            base_path = getattr(sys, "_MEIPASS")
-        else:
-            base_path = os.path.abspath(".")
-        return os.path.join(base_path, filename)
 
     def save_changes(self) -> None:
         """
@@ -1240,135 +1109,56 @@ class EditQsoDialog(QtWidgets.QDialog):
         self.close()
 
 
-class Settings(QtWidgets.QDialog):
+if Path("./debug").exists():
+    logging.basicConfig(
+        format=(
+            "[%(asctime)s] %(levelname)s %(module)s - "
+            "%(funcName)s Line %(lineno)d:\n%(message)s"
+        ),
+        datefmt="%H:%M:%S",
+        level=logging.INFO,
+    )
+else:
+    logging.basicConfig(
+        format=(
+            "[%(asctime)s] %(levelname)s %(module)s - "
+            "%(funcName)s Line %(lineno)d:\n%(message)s"
+        ),
+        datefmt="%H:%M:%S",
+        level=logging.WARNING,
+    )
+
+app = QtWidgets.QApplication(sys.argv)
+app.setStyle("Fusion")
+working_path = os.path.dirname(pkgutil.get_loader("k1usnsst").get_filename())
+font_path = working_path + "/data"
+families = load_fonts_from_dir(os.fspath(font_path))
+logging.info(families)
+window = MainWindow()
+window.show()
+window.create_db()
+window.readpreferences()
+window.readpastcontacts()
+window.read_cw_macros()
+window.logwindow()
+window.callsign_entry.setFocus()
+timer = QtCore.QTimer()
+timer.timeout.connect(window.update_time)
+
+
+def run():
     """
-    Setup settings dialog. Reads and stores settings to an sqlite db.
-    Call setup() with filename of db.
+    Main Entry
     """
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        uic.loadUi(self.relpath("settings.ui"), self)
-        self.buttonBox.accepted.connect(self.save_changes)
-        self.settings_dict = None
-
-    def setup(self):
-        """
-        Reads in existing settings.
-        """
-        try:
-            home = os.path.expanduser("~")
-            with open(
-                home + "/.k1usnsst.json", "rt", encoding="utf-8"
-            ) as file_descriptor:
-                self.settings_dict = loads(file_descriptor.read())
-
-                self.usehamdb_checkBox.setChecked(bool(self.settings_dict["usehamdb"]))
-                self.useqrz_checkBox.setChecked(bool(self.settings_dict["useqrz"]))
-                self.qrzname_field.setText(self.settings_dict["qrzusername"])
-                self.qrzpass_field.setText(self.settings_dict["qrzpassword"])
-                self.qrzurl_field.setText(self.settings_dict["qrzurl"])
-
-                self.rigcontrolip_field.setText(self.settings_dict["rigcontrolip"])
-                self.rigcontrolport_field.setText(self.settings_dict["rigcontrolport"])
-                if self.settings_dict["userigcontrol"] == 1:
-                    self.radioButton_rigctld.setChecked(True)
-                if self.settings_dict["userigcontrol"] == 2:
-                    self.radioButton_flrig.setChecked(True)
-
-                self.cwip_field.setText(self.settings_dict["cwip"])
-                self.cwport_field.setText(str(self.settings_dict["cwport"]))
-                self.usecwdaemon_radioButton.setChecked(
-                    bool(self.settings_dict["cwtype"] == 1)
-                )
-                self.usepywinkeyer_radioButton.setChecked(
-                    bool(self.settings_dict["cwtype"] == 2)
-                )
-        except IOError as exception:
-            logging.critical("%s", exception)
-
-    @staticmethod
-    def relpath(filename: str) -> str:
-        """
-        If the program is packaged with pyinstaller,
-        this is needed since all files will be in a temp folder during execution.
-        """
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            base_path = getattr(sys, "_MEIPASS")
-        else:
-            base_path = os.path.abspath(".")
-        return os.path.join(base_path, filename)
-
-    def save_changes(self) -> None:
-        """
-        Saves settings to the settings file.
-        """
-        try:
-            self.settings_dict["userigcontrol"] = 0
-            if self.radioButton_rigctld.isChecked():
-                self.settings_dict["userigcontrol"] = 1
-            if self.radioButton_flrig.isChecked():
-                self.settings_dict["userigcontrol"] = 2
-            self.settings_dict["rigcontrolip"] = self.rigcontrolip_field.text()
-            self.settings_dict["rigcontrolport"] = self.rigcontrolport_field.text()
-
-            self.settings_dict["usehamdb"] = int(self.usehamdb_checkBox.isChecked())
-            self.settings_dict["useqrz"] = int(self.useqrz_checkBox.isChecked())
-            self.settings_dict["qrzusername"] = self.qrzname_field.text()
-            self.settings_dict["qrzpassword"] = self.qrzpass_field.text()
-            self.settings_dict["qrzurl"] = self.qrzurl_field.text()
-
-            self.settings_dict["cwip"] = self.cwip_field.text()
-            self.settings_dict["cwport"] = int(self.cwport_field.text())
-            self.settings_dict["cwtype"] = 0
-            if self.usecwdaemon_radioButton.isChecked():
-                self.settings_dict["cwtype"] = 1
-            if self.usepywinkeyer_radioButton.isChecked():
-                self.settings_dict["cwtype"] = 2
-
-            logging.info(self.settings_dict)
-            home = os.path.expanduser("~")
-            with open(
-                home + "/.k1usnsst.json", "wt", encoding="utf-8"
-            ) as file_descriptor:
-                file_descriptor.write(dumps(self.settings_dict))
-        except Error as exception:
-            logging.critical("%s", exception)
+    PATH = os.path.dirname(pkgutil.get_loader("k1usnsst").get_filename())
+    os.system(
+        "xdg-icon-resource install --size 64 --context apps --mode user "
+        f"{PATH}/data/k6gte-k1usnsst.png k6gte-k1usnsst"
+    )
+    os.system(f"xdg-desktop-menu install {PATH}/data/k6gte-k1usnsst.desktop")
+    timer.start(1000)
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
-    if Path("./debug").exists():
-        logging.basicConfig(
-            format=(
-                "[%(asctime)s] %(levelname)s %(module)s - "
-                "%(funcName)s Line %(lineno)d:\n%(message)s"
-            ),
-            datefmt="%H:%M:%S",
-            level=logging.INFO,
-        )
-    else:
-        logging.basicConfig(
-            format=(
-                "[%(asctime)s] %(levelname)s %(module)s - "
-                "%(funcName)s Line %(lineno)d:\n%(message)s"
-            ),
-            datefmt="%H:%M:%S",
-            level=logging.WARNING,
-        )
-    app = QtWidgets.QApplication(sys.argv)
-    app.setStyle("Fusion")
-    font_dir = relpath("font")
-    families = load_fonts_from_dir(os.fspath(font_dir))
-    logging.info(families)
-    window = MainWindow()
-    window.show()
-    window.create_db()
-    window.readpreferences()
-    window.readpastcontacts()
-    window.read_cw_macros()
-    window.logwindow()
-    window.callsign_entry.setFocus()
-    timer = QtCore.QTimer()
-    timer.timeout.connect(window.update_time)
-    timer.start(1000)
-    sys.exit(app.exec())
+    run()
