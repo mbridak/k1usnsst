@@ -502,6 +502,30 @@ color: rgb(255, 255, 255);
          </widget>
         </item>
         <item>
+          <widget class="QLabel" name="dupe_indicator">
+            <property name="geometry">
+            <rect>
+              <x>310</x>
+              <y>202</y>
+              <width>231</width>
+              <height>25</height>
+            </rect>
+            </property>
+            <property name="font">
+            <font>
+              <family>JetBrains Mono</family>
+              <pointsize>12</pointsize>
+            </font>
+            </property>
+            <property name="styleSheet">
+            <string notr="true">color: rgb(230, 97, 0);</string>
+            </property>
+            <property name="text">
+            <string/>
+            </property>
+          </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
