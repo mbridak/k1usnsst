@@ -5,7 +5,6 @@
 import logging
 import os
 import pkgutil
-import sys
 from json import dumps, loads
 from PyQt5 import QtWidgets, uic
 
