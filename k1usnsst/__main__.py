@@ -5,6 +5,7 @@ Logger for K1USN SST
 
 import logging
 import os
+import pkgutil
 import re
 import socket
 import sqlite3
@@ -17,24 +18,21 @@ from shutil import copyfile
 from xmlrpc.client import Error, ServerProxy  # pylint: disable=unused-import
 
 import psutil
-from lib.cwinterface import CW
-from lib.lookup import QRZlookup
-from lib.settings import Settings
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import QDir, Qt  # pylint: disable=no-name-in-module
 from PyQt5.QtGui import QFontDatabase  # pylint: disable=no-name-in-module
 
+try:
+    from k1usnsst.lib.cwinterface import CW
+    from k1usnsst.lib.lookup import QRZlookup
+    from k1usnsst.lib.settings import Settings
+except ModuleNotFoundError:
+    from lib.cwinterface import CW
+    from lib.lookup import QRZlookup
+    from lib.settings import Settings
 
-def relpath(filename: str) -> str:
-    """
-    Checks to see if program has been packaged with pyinstaller.
-    If so base dir is in a temp folder.
-    """
-    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        base_path = getattr(sys, "_MEIPASS")
-    else:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, filename)
+
+# pylint: disable=c-extension-no-member
 
 
 def load_fonts_from_dir(directory: str) -> set:
@@ -108,7 +106,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         logging.info("MainWindow: __init__")
         super().__init__(*args, **kwargs)
-        uic.loadUi(self.relpath("main.ui"), self)
+        self.working_path = os.path.dirname(
+            pkgutil.get_loader("k1usnsst").get_filename()
+        )
+        data_path = self.working_path + "/data/main.ui"
+        uic.loadUi(data_path, self)
         self.listWidget.itemDoubleClicked.connect(self.qsoclicked)
         self.mycallEntry.textEdited.connect(self.changemycall)
         self.myexchangeEntry.textEdited.connect(self.changemyexchange)
@@ -117,10 +119,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.callsign_entry.editingFinished.connect(self.dup_check)
         self.exchange_entry.textEdited.connect(self.exchangetest)
         self.exchange_entry.returnPressed.connect(self.log_contact)
-        self.radio_grey = QtGui.QPixmap(self.relpath("icon/radio_grey.png"))
-        self.radio_green = QtGui.QPixmap(self.relpath("icon/radio_green.png"))
-        self.radio_red = QtGui.QPixmap(self.relpath("icon/radio_red.png"))
-        self.gear_icon = QtGui.QIcon(self.relpath("icon/gear16x16.png"))
+        icon_path = self.working_path + "/icon/"
+        self.radio_grey = QtGui.QPixmap(icon_path + "radio_grey.png")
+        self.radio_green = QtGui.QPixmap(icon_path + "radio_green.png")
+        self.radio_red = QtGui.QPixmap(icon_path + "radio_red.png")
+        self.gear_icon = QtGui.QIcon(icon_path + "gear16x16.png")
         self.radio_icon.setPixmap(self.radio_grey)
         self.QRZ_icon.setStyleSheet("color: rgb(136, 138, 133);")
         self.genLogButton.clicked.connect(self.generate_logs)
@@ -176,19 +179,6 @@ class MainWindow(QtWidgets.QMainWindow):
         logging.info("%s not running", processname)
         return False
 
-    @staticmethod
-    def relpath(filename: str) -> str:
-        """
-        If the program is packaged with pyinstaller,
-        this is needed since all files will be in a temp folder during execution.
-        """
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            base_path = getattr(sys, "_MEIPASS")
-        else:
-            base_path = os.path.abspath(".")
-        logging.info("MainWindow: relpath: %s%s", base_path, filename)
-        return os.path.join(base_path, filename)
-
     def read_cw_macros(self):
         """
         Reads in the CW macros, firsts it checks to see if the file exists. If it does not,
@@ -196,13 +186,9 @@ class MainWindow(QtWidgets.QMainWindow):
         temp directory this is running from... In theory.
         """
 
-        if (
-            getattr(sys, "frozen", False)
-            and hasattr(sys, "_MEIPASS")
-            and not Path("./cwmacros_sst.txt").exists()
-        ):
+        if not Path("./cwmacros_sst.txt").exists():
             logging.info("read_cw_macros: copying default macro file.")
-            copyfile(relpath("cwmacros_sst.txt"), "./cwmacros_sst.txt")
+            copyfile(self.working_path + "/data/cwmacros_sst.txt", "./cwmacros_sst.txt")
         with open("./cwmacros_sst.txt", "r", encoding="utf-8") as cw_macros:
             for line in cw_macros:
                 try:
@@ -1054,7 +1040,11 @@ class EditQsoDialog(QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi(self.relpath("dialog.ui"), self)
+        self.working_path = os.path.dirname(
+            pkgutil.get_loader("k1usnsst").get_filename()
+        )
+        data_path = self.working_path + "/data/dialog.ui"
+        uic.loadUi(data_path, self)
         self.deleteButton.clicked.connect(self.delete_contact)
         self.buttonBox.accepted.connect(self.save_changes)
         self.change = QSOEdit()
@@ -1081,18 +1071,6 @@ class EditQsoDialog(QtWidgets.QDialog):
         date_time = thedate + " " + thetime
         now = QtCore.QDateTime.fromString(date_time, "yyyy-MM-dd hh:mm:ss")
         self.editDateTime.setDateTime(now)
-
-    @staticmethod
-    def relpath(filename: str) -> str:
-        """
-        If the program is packaged with pyinstaller,
-        this is needed since all files will be in a temp folder during execution.
-        """
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            base_path = getattr(sys, "_MEIPASS")
-        else:
-            base_path = os.path.abspath(".")
-        return os.path.join(base_path, filename)
 
     def save_changes(self) -> None:
         """
@@ -1131,39 +1109,52 @@ class EditQsoDialog(QtWidgets.QDialog):
         self.close()
 
 
-if __name__ == "__main__":
-    if Path("./debug").exists():
-        logging.basicConfig(
-            format=(
-                "[%(asctime)s] %(levelname)s %(module)s - "
-                "%(funcName)s Line %(lineno)d:\n%(message)s"
-            ),
-            datefmt="%H:%M:%S",
-            level=logging.INFO,
-        )
-    else:
-        logging.basicConfig(
-            format=(
-                "[%(asctime)s] %(levelname)s %(module)s - "
-                "%(funcName)s Line %(lineno)d:\n%(message)s"
-            ),
-            datefmt="%H:%M:%S",
-            level=logging.WARNING,
-        )
-    app = QtWidgets.QApplication(sys.argv)
-    app.setStyle("Fusion")
-    font_dir = relpath("font")
-    families = load_fonts_from_dir(os.fspath(font_dir))
-    logging.info(families)
-    window = MainWindow()
-    window.show()
-    window.create_db()
-    window.readpreferences()
-    window.readpastcontacts()
-    window.read_cw_macros()
-    window.logwindow()
-    window.callsign_entry.setFocus()
-    timer = QtCore.QTimer()
-    timer.timeout.connect(window.update_time)
+if Path("./debug").exists():
+    logging.basicConfig(
+        format=(
+            "[%(asctime)s] %(levelname)s %(module)s - "
+            "%(funcName)s Line %(lineno)d:\n%(message)s"
+        ),
+        datefmt="%H:%M:%S",
+        level=logging.INFO,
+    )
+else:
+    logging.basicConfig(
+        format=(
+            "[%(asctime)s] %(levelname)s %(module)s - "
+            "%(funcName)s Line %(lineno)d:\n%(message)s"
+        ),
+        datefmt="%H:%M:%S",
+        level=logging.WARNING,
+    )
+
+app = QtWidgets.QApplication(sys.argv)
+app.setStyle("Fusion")
+working_path = os.path.dirname(pkgutil.get_loader("k1usnsst").get_filename())
+font_path = working_path + "/data"
+families = load_fonts_from_dir(os.fspath(font_path))
+logging.info(families)
+window = MainWindow()
+window.show()
+window.create_db()
+window.readpreferences()
+window.readpastcontacts()
+window.read_cw_macros()
+window.logwindow()
+window.callsign_entry.setFocus()
+timer = QtCore.QTimer()
+timer.timeout.connect(window.update_time)
+
+
+def run():
+    """
+    Main Entry
+    """
     timer.start(1000)
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    # working_path = os.path.dirname(pkgutil.get_loader("k1usnsst").get_filename())
+
+    run()
