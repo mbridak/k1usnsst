@@ -4,25 +4,25 @@ Logger for K1USN SST
 """
 
 import logging
-import xmlrpc.client
-import sys
-import sqlite3
-import socket
 import os
-import psutil
 import re
-
-from json import dumps, loads
+import socket
+import sqlite3
+import sys
+import xmlrpc.client
 from datetime import datetime
+from json import dumps, loads
 from pathlib import Path
 from shutil import copyfile
-from xmlrpc.client import ServerProxy, Error
+from xmlrpc.client import Error, ServerProxy  # pylint: disable=unused-import
+
+import psutil
+from lib.cwinterface import CW
+from lib.lookup import QRZlookup
+from lib.settings import Settings
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from PyQt5.QtCore import QDir, Qt
-from PyQt5.QtGui import QFontDatabase
-from bs4 import BeautifulSoup as bs
-import requests
-from k1usnsst.lib.cwinterface import CW
+from PyQt5.QtCore import QDir, Qt  # pylint: disable=no-name-in-module
+from PyQt5.QtGui import QFontDatabase  # pylint: disable=no-name-in-module
 
 
 def relpath(filename: str) -> str:
@@ -54,115 +54,6 @@ class QSOEdit(QtCore.QObject):
     """
 
     lineChanged = QtCore.pyqtSignal()
-
-
-class QRZlookup:
-    """
-    Class manages QRZ lookups. Pass in a username and password at instantiation.
-    """
-
-    def __init__(self, username: str, password: str) -> None:
-        self.session = False
-        self.expiration = False
-        self.error = (
-            False  # "password incorrect", "session timeout", and "callsign not found".
-        )
-        self.username = username
-        self.password = password
-        self.qrzurl = "https://xmldata.qrz.com/xml/134/"
-        self.message = False
-        self.lastresult = False
-        self.getsession()
-
-    def getsession(self) -> None:
-        """
-        Get QRZ session key.
-        Stores key in class variable 'session'
-        Error messages returned by QRZ will be in class variable 'error'
-        Other messages returned will be in class variable 'message'
-        """
-        logging.info("QRZlookup-getsession:")
-        self.error = False
-        self.message = False
-        self.session = False
-        try:
-            payload = {"username": self.username, "password": self.password}
-            query_result = requests.get(self.qrzurl, params=payload, timeout=10.0)
-            root = bs(query_result.text, "html.parser")
-            if root.session.find("key"):
-                self.session = root.session.key.text
-            if root.session.find("subexp"):
-                self.expiration = root.session.subexp.text
-            if root.session.find("error"):
-                self.error = root.session.error.text
-            if root.session.find("message"):
-                self.message = root.session.message.text
-            logging.info(
-                "QRZlookup-getsession: key:%s error:%s message:%s",
-                self.session,
-                self.error,
-                self.message,
-            )
-        except requests.exceptions.RequestException as exception:
-            logging.info("QRZlookup-getsession: %s", exception)
-            self.session = False
-            self.error = f"{exception}"
-
-    def lookup(self, call: str) -> tuple:
-        """
-        Lookup a call on QRZ
-        """
-        logging.info("QRZlookup-lookup: %s", call)
-        grid = False
-        name = False
-        error_text = False
-        nickname = False
-        if self.session:
-            payload = {"s": self.session, "callsign": call}
-            query_result = requests.get(self.qrzurl, params=payload, timeout=3.0)
-            root = bs(query_result.text, "html.parser")
-            if not root.session.key:  # key expired get a new one
-                logging.info("QRZlookup-lookup: no key, getting new one.")
-                self.getsession()
-                if self.session:
-                    payload = {"s": self.session, "callsign": call}
-                    query_result = requests.get(
-                        self.qrzurl, params=payload, timeout=3.0
-                    )
-            grid, name, nickname, error_text = self.parse_lookup(query_result)
-        return grid, name, nickname, error_text
-
-    def parse_lookup(self, query_result):
-        """
-        Returns gridsquare and name for a callsign looked up by qrz or hamdb.
-        Or False for both if none found or error.
-        """
-        logging.info("QRZlookup-parse_lookup:")
-        grid = False
-        name = False
-        error_text = False
-        nickname = False
-        if query_result.status_code == 200:
-            root = bs(query_result.text, "html.parser")
-            if root.session.find("error"):
-                error_text = root.session.error.text
-                self.error = error_text
-            if root.find("callsign"):
-                if root.callsign.find("grid"):
-                    grid = root.callsign.grid.text
-                if root.callsign.find("fname"):
-                    name = root.callsign.fname.text
-                if root.find("name"):
-                    if not name:
-                        name = root.find("name").string
-                    else:
-                        name = f"{name} {root.find('name').string}"
-                if root.callsign.find("nickname"):
-                    nickname = root.callsign.nickname.text
-        logging.info(
-            "QRZlookup-parse_lookup: %s %s %s %s", grid, name, nickname, error_text
-        )
-        return grid, name, nickname, error_text
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -1238,102 +1129,6 @@ class EditQsoDialog(QtWidgets.QDialog):
             logging.critical("%s", exception)
         self.change.lineChanged.emit()
         self.close()
-
-
-class Settings(QtWidgets.QDialog):
-    """
-    Setup settings dialog. Reads and stores settings to an sqlite db.
-    Call setup() with filename of db.
-    """
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        uic.loadUi(self.relpath("settings.ui"), self)
-        self.buttonBox.accepted.connect(self.save_changes)
-        self.settings_dict = None
-
-    def setup(self):
-        """
-        Reads in existing settings.
-        """
-        try:
-            home = os.path.expanduser("~")
-            with open(
-                home + "/.k1usnsst.json", "rt", encoding="utf-8"
-            ) as file_descriptor:
-                self.settings_dict = loads(file_descriptor.read())
-
-                self.usehamdb_checkBox.setChecked(bool(self.settings_dict["usehamdb"]))
-                self.useqrz_checkBox.setChecked(bool(self.settings_dict["useqrz"]))
-                self.qrzname_field.setText(self.settings_dict["qrzusername"])
-                self.qrzpass_field.setText(self.settings_dict["qrzpassword"])
-                self.qrzurl_field.setText(self.settings_dict["qrzurl"])
-
-                self.rigcontrolip_field.setText(self.settings_dict["rigcontrolip"])
-                self.rigcontrolport_field.setText(self.settings_dict["rigcontrolport"])
-                if self.settings_dict["userigcontrol"] == 1:
-                    self.radioButton_rigctld.setChecked(True)
-                if self.settings_dict["userigcontrol"] == 2:
-                    self.radioButton_flrig.setChecked(True)
-
-                self.cwip_field.setText(self.settings_dict["cwip"])
-                self.cwport_field.setText(str(self.settings_dict["cwport"]))
-                self.usecwdaemon_radioButton.setChecked(
-                    bool(self.settings_dict["cwtype"] == 1)
-                )
-                self.usepywinkeyer_radioButton.setChecked(
-                    bool(self.settings_dict["cwtype"] == 2)
-                )
-        except IOError as exception:
-            logging.critical("%s", exception)
-
-    @staticmethod
-    def relpath(filename: str) -> str:
-        """
-        If the program is packaged with pyinstaller,
-        this is needed since all files will be in a temp folder during execution.
-        """
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            base_path = getattr(sys, "_MEIPASS")
-        else:
-            base_path = os.path.abspath(".")
-        return os.path.join(base_path, filename)
-
-    def save_changes(self) -> None:
-        """
-        Saves settings to the settings file.
-        """
-        try:
-            self.settings_dict["userigcontrol"] = 0
-            if self.radioButton_rigctld.isChecked():
-                self.settings_dict["userigcontrol"] = 1
-            if self.radioButton_flrig.isChecked():
-                self.settings_dict["userigcontrol"] = 2
-            self.settings_dict["rigcontrolip"] = self.rigcontrolip_field.text()
-            self.settings_dict["rigcontrolport"] = self.rigcontrolport_field.text()
-
-            self.settings_dict["usehamdb"] = int(self.usehamdb_checkBox.isChecked())
-            self.settings_dict["useqrz"] = int(self.useqrz_checkBox.isChecked())
-            self.settings_dict["qrzusername"] = self.qrzname_field.text()
-            self.settings_dict["qrzpassword"] = self.qrzpass_field.text()
-            self.settings_dict["qrzurl"] = self.qrzurl_field.text()
-
-            self.settings_dict["cwip"] = self.cwip_field.text()
-            self.settings_dict["cwport"] = int(self.cwport_field.text())
-            self.settings_dict["cwtype"] = 0
-            if self.usecwdaemon_radioButton.isChecked():
-                self.settings_dict["cwtype"] = 1
-            if self.usepywinkeyer_radioButton.isChecked():
-                self.settings_dict["cwtype"] = 2
-
-            logging.info(self.settings_dict)
-            home = os.path.expanduser("~")
-            with open(
-                home + "/.k1usnsst.json", "wt", encoding="utf-8"
-            ) as file_descriptor:
-                file_descriptor.write(dumps(self.settings_dict))
-        except Error as exception:
-            logging.critical("%s", exception)
 
 
 if __name__ == "__main__":

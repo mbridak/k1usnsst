@@ -8,6 +8,17 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 
 ![mainscreen](pics/k1usnsst_main.png "Main Screen")
 
+- [K1USN SST Logger](#k1usn-sst-logger)
+  - [What it is](#what-it-is)
+  - [Recent Changes](#recent-changes)
+  - [Running from source](#running-from-source)
+  - [Building a binary executable](#building-a-binary-executable)
+  - [Install a Linux icon](#install-a-linux-icon)
+  - [QRZ / HamDB / CAT](#qrz--hamdb--cat)
+  - [When the event is over](#when-the-event-is-over)
+  - [Enabling CW Interface](#enabling-cw-interface)
+  - [CW Macros](#cw-macros)
+
 ## Recent Changes
 
 - Interface is now resizable
