@@ -1,5 +1,6 @@
 build/
 dist/
+k1usnsst.egg-info/
 __pycache__/
 *.backup
 *.db
