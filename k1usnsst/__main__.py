@@ -1150,11 +1150,15 @@ def run():
     """
     Main Entry
     """
+    PATH = os.path.dirname(pkgutil.get_loader("k1usnsst").get_filename())
+    os.system(
+        "xdg-icon-resource install --size 64 --context apps --mode user "
+        f"{PATH}/data/k6gte-k1usnsst.png k6gte-k1usnsst"
+    )
+    os.system(f"xdg-desktop-menu install {PATH}/data/k6gte-k1usnsst.desktop")
     timer.start(1000)
     sys.exit(app.exec())
 
 
 if __name__ == "__main__":
-    # working_path = os.path.dirname(pkgutil.get_loader("k1usnsst").get_filename())
-
     run()
