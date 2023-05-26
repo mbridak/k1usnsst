@@ -34,6 +34,9 @@ except ModuleNotFoundError:
 
 # pylint: disable=c-extension-no-member
 
+if os.environ.get("XDG_CURRENT_DESKTOP", False) == "GNOME":
+    os.environ["QT_QPA_PLATFORMTHEME"] = "gnome"
+    os.environ["QT_STYLE_OVERRIDE"] = "Adwaita-Dark"
 
 def load_fonts_from_dir(directory: str) -> set:
     """
