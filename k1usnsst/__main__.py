@@ -3,9 +3,9 @@
 Logger for K1USN SST
 """
 
+import datetime as dt
 import logging
 import os
-import pkgutil
 import re
 import socket
 import sqlite3
@@ -37,6 +37,7 @@ except ModuleNotFoundError:
 if os.environ.get("XDG_CURRENT_DESKTOP", False) == "GNOME":
     os.environ["QT_QPA_PLATFORMTHEME"] = "gnome"
     os.environ["QT_STYLE_OVERRIDE"] = "Adwaita-Dark"
+
 
 def load_fonts_from_dir(directory: str) -> set:
     """
@@ -109,9 +110,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         logging.info("MainWindow: __init__")
         super().__init__(*args, **kwargs)
-        self.working_path = os.path.dirname(
-            pkgutil.get_loader("k1usnsst").get_filename()
-        )
+        self.working_path = os.path.dirname(__loader__.get_filename())
         data_path = self.working_path + "/data/main.ui"
         uic.loadUi(data_path, self)
         self.listWidget.itemDoubleClicked.connect(self.qsoclicked)
@@ -589,7 +588,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Update local and UTC time on screen.
         """
-        utcnow = datetime.utcnow().isoformat(" ")[5:19].replace("-", "/")
+        utcnow = datetime.now(dt.timezone.utc).isoformat(" ")[5:19].replace("-", "/")
         self.utctime.setText(utcnow)
 
     def flash(self) -> None:
@@ -1043,9 +1042,7 @@ class EditQsoDialog(QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.working_path = os.path.dirname(
-            pkgutil.get_loader("k1usnsst").get_filename()
-        )
+        self.working_path = os.path.dirname(__loader__.get_filename())
         data_path = self.working_path + "/data/dialog.ui"
         uic.loadUi(data_path, self)
         self.deleteButton.clicked.connect(self.delete_contact)
@@ -1133,7 +1130,7 @@ else:
 
 app = QtWidgets.QApplication(sys.argv)
 app.setStyle("Fusion")
-working_path = os.path.dirname(pkgutil.get_loader("k1usnsst").get_filename())
+working_path = os.path.dirname(__loader__.get_filename())
 font_path = working_path + "/data"
 families = load_fonts_from_dir(os.fspath(font_path))
 logging.info(families)
@@ -1153,7 +1150,7 @@ def run():
     """
     Main Entry
     """
-    PATH = os.path.dirname(pkgutil.get_loader("k1usnsst").get_filename())
+    PATH = os.path.dirname(__loader__.get_filename())
     os.system(
         "xdg-icon-resource install --size 64 --context apps --mode user "
         f"{PATH}/data/k6gte-k1usnsst.png k6gte-k1usnsst"
