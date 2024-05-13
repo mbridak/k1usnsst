@@ -57,7 +57,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -74,7 +74,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -88,7 +88,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -105,7 +105,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -119,7 +119,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -136,7 +136,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -162,6 +162,7 @@ color: rgb(211, 215, 207);</string>
             <property name="font">
              <font>
               <family>JetBrains Mono</family>
+              <pointsize>12</pointsize>
              </font>
             </property>
             <property name="styleSheet">
@@ -180,7 +181,7 @@ color: rgb(211, 215, 207);</string>
             <property name="font">
              <font>
               <family>JetBrains Mono</family>
-              <pointsize>11</pointsize>
+              <pointsize>12</pointsize>
               <bold>false</bold>
              </font>
             </property>
@@ -226,7 +227,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -243,7 +244,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -257,7 +258,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -274,7 +275,7 @@ color: rgb(211, 215, 207);</string>
          <property name="font">
           <font>
            <family>JetBrains Mono</family>
-           <pointsize>11</pointsize>
+           <pointsize>12</pointsize>
            <bold>false</bold>
           </font>
          </property>
@@ -297,6 +298,7 @@ color: rgb(211, 215, 207);</string>
             <property name="font">
              <font>
               <family>JetBrains Mono</family>
+              <pointsize>12</pointsize>
              </font>
             </property>
             <property name="toolTip">
@@ -312,6 +314,7 @@ color: rgb(211, 215, 207);</string>
             <property name="font">
              <font>
               <family>JetBrains Mono</family>
+              <pointsize>12</pointsize>
              </font>
             </property>
             <property name="toolTip">
@@ -327,6 +330,7 @@ color: rgb(211, 215, 207);</string>
             <property name="font">
              <font>
               <family>JetBrains Mono</family>
+              <pointsize>12</pointsize>
              </font>
             </property>
             <property name="toolTip">
@@ -444,6 +448,19 @@ color: rgb(211, 215, 207);</string>
            </widget>
           </item>
           <item>
+           <widget class="QRadioButton" name="usecatforcw_radioButton">
+           <property name="font">
+             <font>
+              <family>JetBrains Mono</family>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Key via CAT</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QRadioButton" name="radioButton_5">
             <property name="font">
              <font>
@@ -474,7 +491,7 @@ color: rgb(211, 215, 207);</string>
      <property name="font">
       <font>
        <family>JetBrains Mono</family>
-       <pointsize>11</pointsize>
+       <pointsize>12</pointsize>
        <bold>true</bold>
       </font>
      </property>

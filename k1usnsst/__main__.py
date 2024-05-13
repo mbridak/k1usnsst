@@ -485,7 +485,27 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Sends string to k1el keyer.
         """
-        if self.cw:
+        if (
+            self.userigctl is True
+            and self.rigonline is True
+            and self.settings_dict.get("cwtype", 0) == 3
+        ):
+            try:
+                self.rigctrlsocket.connect(
+                    (
+                        self.settings_dict["rigcontrolip"],
+                        int(self.settings_dict["rigcontrolport"]),
+                    )
+                )
+            except socket.error:
+                self.rigonline = False
+                self.radio_icon.setPixmap(self.radio_red)
+                return
+            self.rigctrlsocket.settimeout(0.1)
+            self.rigctrlsocket.send(bytes(f"b{texttosend}", "utf-8"))
+            self.rigctrlsocket.shutdown(socket.SHUT_RDWR)
+            self.rigctrlsocket.close()
+        elif self.cw:
             self.cw.sendcw(texttosend)
 
     def sendf1(self) -> None:

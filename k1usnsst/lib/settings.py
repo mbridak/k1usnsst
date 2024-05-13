@@ -57,6 +57,9 @@ class Settings(QtWidgets.QDialog):  # pylint: disable=c-extension-no-member
                 self.usepywinkeyer_radioButton.setChecked(
                     bool(self.settings_dict["cwtype"] == 2)
                 )
+                self.usecatforcw_radioButton.setChecked(
+                    bool(self.settings_dict["cwtype"] == 3)
+                )
         except IOError as exception:
             logging.critical("%s", exception)
 
@@ -86,6 +89,8 @@ class Settings(QtWidgets.QDialog):  # pylint: disable=c-extension-no-member
             self.settings_dict["cwtype"] = 1
         if self.usepywinkeyer_radioButton.isChecked():
             self.settings_dict["cwtype"] = 2
+        if self.usecatforcw_radioButton.isChecked():
+            self.settings_dict["cwtype"] = 3
 
         logging.info(self.settings_dict)
         try:
