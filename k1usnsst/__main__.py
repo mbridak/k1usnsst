@@ -352,15 +352,18 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.radio_icon.setPixmap(self.radio_red)
         if self.rigonline:
-            self.rigctrlsocket.settimeout(0.5)
-            self.rigctrlsocket.send(b"f")
-            newfreq = self.rigctrlsocket.recv(1024).decode().strip()
-            self.radio_icon.setPixmap(self.radio_green)
-            self.rigctrlsocket.shutdown(socket.SHUT_RDWR)
-            self.rigctrlsocket.close()
-            if newfreq != self.oldfreq:
-                self.oldfreq = newfreq
-                self.setband(str(self.getband(newfreq)))
+            try:
+                self.rigctrlsocket.settimeout(0.5)
+                self.rigctrlsocket.send(b"f")
+                newfreq = self.rigctrlsocket.recv(1024).decode().strip()
+                self.radio_icon.setPixmap(self.radio_green)
+                self.rigctrlsocket.shutdown(socket.SHUT_RDWR)
+                self.rigctrlsocket.close()
+                if newfreq != self.oldfreq:
+                    self.oldfreq = newfreq
+                    self.setband(str(self.getband(newfreq)))
+            except TimeoutError:
+                ...
 
     def check_radio(self) -> None:
         """
@@ -491,20 +494,21 @@ class MainWindow(QtWidgets.QMainWindow):
             and self.settings_dict.get("cwtype", 0) == 3
         ):
             try:
+                self.rigctrlsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.rigctrlsocket.connect(
                     (
                         self.settings_dict["rigcontrolip"],
                         int(self.settings_dict["rigcontrolport"]),
                     )
                 )
-            except socket.error:
-                self.rigonline = False
-                self.radio_icon.setPixmap(self.radio_red)
-                return
-            self.rigctrlsocket.settimeout(0.1)
-            self.rigctrlsocket.send(bytes(f"b{texttosend}", "utf-8"))
-            self.rigctrlsocket.shutdown(socket.SHUT_RDWR)
-            self.rigctrlsocket.close()
+                self.rigctrlsocket.settimeout(0.5)
+                self.rigctrlsocket.send(bytes(f"b{texttosend}\n", "utf-8"))
+                _ = self.rigctrlsocket.recv(1024).decode().strip()
+                self.rigctrlsocket.shutdown(socket.SHUT_RDWR)
+                self.rigctrlsocket.close()
+            except (TimeoutError, BrokenPipeError, OSError) as err:
+                print(err)
+
         elif self.cw:
             self.cw.sendcw(texttosend)
 
