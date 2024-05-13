@@ -22,6 +22,7 @@ This is a scratch my own itch project. It's just a simple, lightweight logger fo
 
 ## Recent Changes
 
+- Can now send CW via rigctld CAT for those radios that support it.
 - Interface is now resizable
 - Repackaged for PyPi and it now pip installable
 
@@ -65,6 +66,8 @@ If you don't have rigctld or FLRIG and your a Debian/Ubuntu based Linux user you
 ### Enabling CW Interface
 
 In the setting screen, switch to the CW tab. Set the host that is running either cwdaemon or PyWinkeyer. Most likely `localhost`. Set the port that the service is listening on. cwdaemon defaults to 6789, Pywinkeyer defaults to 8000. And lastly click the bullet next to the service you will be using.
+
+You can now choose Key via CAT to use rigctld to key the radio, negating the need for a winkeyer.
 
 ![CW settings screen](https://github.com/mbridak/k1usnsst/raw/master/pics/cwsettings.png)
 
